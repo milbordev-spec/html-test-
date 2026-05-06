@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MaibaConnect</title>
+    <title>MaibaSync Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -12,6 +12,7 @@
             background-color: #05070a;
             color: white;
             font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
 
         .glass-card {
@@ -23,133 +24,198 @@
         .input-boutique {
             background: #0f172a !important;
             border: 1px solid #1e293b;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .input-boutique:focus {
-            border-color: #10b981;
-            /* Verde WhatsApp al enfocar */
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
         }
 
         .tab-active {
-            background: #10b981;
-            color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+        }
+
+        .msg-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 
-<body class="p-6 min-h-screen flex flex-col items-center justify-center">
+<body class="p-4 min-h-screen">
 
-    <div class="w-full max-w-sm space-y-6">
+    <div class="max-w-md mx-auto space-y-4">
 
-        <div class="text-center space-y-2">
-            <h1 class="text-4xl font-black tracking-tighter text-white">Maiba<span class="text-green-500">Sync</span>
-            </h1>
-            <p class="text-gray-500 text-[10px] uppercase tracking-[0.2em] font-bold">Multi-Channel Reminders</p>
+        <!-- HEADER & TABS -->
+        <div class="text-center pt-4 mb-2">
+            <h1 class="text-3xl font-black text-white">Maiba<span class="text-green-500">Sync</span></h1>
         </div>
 
-        <div class="glass-card rounded-[2.5rem] p-7 shadow-2xl space-y-6">
+        <div class="flex border-b border-gray-800 mb-6">
+            <button onclick="switchTab('form')" id="tab-form"
+                class="flex-1 py-3 font-bold text-xs tracking-widest tab-active transition-all">PROGRAMAR</button>
+            <button onclick="switchTab('list')" id="tab-list"
+                class="flex-1 py-3 font-bold text-xs tracking-widest text-gray-500 transition-all text-center flex justify-center items-center gap-2">
+                MIS MENSAJES <span id="count-badge" class="bg-gray-800 text-[10px] px-2 py-0.5 rounded-full">0</span>
+            </button>
+        </div>
 
-            <!-- SELECTOR DE CANAL -->
-            <div class="flex bg-black/40 p-1.5 rounded-2xl border border-white/5">
+        <!-- SECCIÓN FORMULARIO -->
+        <div id="view-form" class="glass-card rounded-[2.5rem] p-7 shadow-2xl space-y-5">
+            <input type="hidden" id="edit-id"> <!-- Para saber si estamos editando -->
+
+            <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 <button onclick="setCanal('tg')" id="btn-tg"
-                    class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all tab-active">TELEGRAM</button>
+                    class="flex-1 py-2 rounded-lg text-[10px] font-bold bg-green-500 text-white shadow-lg transition-all">TELEGRAM</button>
                 <button onclick="setCanal('wa')" id="btn-wa"
-                    class="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-500 transition-all">WHATSAPP</button>
+                    class="flex-1 py-2 rounded-lg text-[10px] font-bold text-gray-500 transition-all">WHATSAPP</button>
             </div>
 
-            <!-- TELÉFONO -->
-            <div class="space-y-2">
-                <label class="block text-[10px] font-black text-gray-400 uppercase ml-1">Número de Destino (10
-                    dígitos)</label>
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfono Destino</label>
                 <input type="tel" id="telefono" placeholder="6441234567" maxlength="10"
-                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none text-lg">
+                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none">
             </div>
 
-            <!-- MENSAJE -->
-            <div class="space-y-2">
-                <label class="block text-[10px] font-black text-gray-400 uppercase ml-1">Contenido del
-                    Recordatorio</label>
-                <textarea id="mensaje" rows="2" placeholder="Escribe aquí..."
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Mensaje</label>
+                <textarea id="mensaje" rows="2" placeholder="..."
                     class="input-boutique w-full p-4 rounded-2xl text-white outline-none resize-none"></textarea>
             </div>
 
-            <!-- FECHA -->
-            <div class="space-y-2">
-                <label class="block text-[10px] font-black text-gray-400 uppercase ml-1">Programar (Mínimo +1h)</label>
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha y Hora</label>
                 <input type="datetime-local" id="fecha"
                     class="input-boutique w-full p-4 rounded-2xl text-white outline-none">
             </div>
 
-            <button onclick="procesar()" id="btnMain"
-                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs shadow-xl transition-all uppercase tracking-widest hover:scale-[1.02] active:scale-95">
-                Agendar en la Nube
+            <button onclick="guardarRegistro()" id="btnMain"
+                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+                Agendar Recordatorio
             </button>
         </div>
+
+        <!-- SECCIÓN LISTADO -->
+        <div id="view-list" class="hidden space-y-4">
+            <div id="lista-vacia" class="text-center py-20 text-gray-600">
+                <span class="text-5xl block mb-4">🏜️</span>
+                <p class="text-sm">No hay mensajes agendados.</p>
+            </div>
+            <div id="contenedor-mensajes" class="space-y-3">
+                <!-- Aquí se inyectan los mensajes -->
+            </div>
+        </div>
+
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        let canalSeleccionado = 'tg';
-        tg.expand();
+        let canal = 'tg';
+        let mensajes = JSON.parse(localStorage.getItem('maiba_msgs') || '[]');
 
-        function setCanal(tipo) {
-            canalSeleccionado = tipo;
-            const btnTg = document.getElementById('btn-tg');
-            const btnWa = document.getElementById('btn-wa');
-
-            if (tipo === 'tg') {
-                btnTg.classList.add('tab-active'); btnTg.classList.remove('text-gray-500');
-                btnWa.classList.remove('tab-active'); btnWa.classList.add('text-gray-500');
-            } else {
-                btnWa.classList.add('tab-active'); btnWa.classList.remove('text-gray-500');
-                btnTg.classList.remove('tab-active'); btnTg.classList.add('text-gray-500');
-            }
+        function switchTab(view) {
+            document.getElementById('view-form').classList.toggle('hidden', view !== 'form');
+            document.getElementById('view-list').classList.toggle('hidden', view !== 'list');
+            document.getElementById('tab-form').classList.toggle('tab-active', view === 'form');
+            document.getElementById('tab-list').classList.toggle('tab-active', view === 'list');
+            if (view === 'list') renderList();
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        // Setup fecha inicial (+1h)
-        const inputFecha = document.getElementById('fecha');
-        const d = new Date();
-        d.setHours(d.getHours() + 1);
-        inputFecha.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-
-        function procesar() {
-            const tel = document.getElementById('telefono').value.trim();
-            const msg = document.getElementById('mensaje').value.trim();
-            const fechaVal = new Date(document.getElementById('fecha').value);
-            const ahora = new Date();
-
-            if (!/^\d{10}$/.test(tel)) {
-                tg.showAlert("⚠️ El número debe ser de 10 dígitos.");
-                return;
-            }
-            if (!msg) {
-                tg.showAlert("⚠️ ¿Y el mensaje? No lo dejes vacío.");
-                return;
-            }
-            if ((fechaVal - ahora) < (60 * 60 * 1000)) {
-                tg.showAlert("⚠️ Ponle al menos 1 hora de diferencia, ¡no seas enfadoso!");
-                return;
-            }
-
-            // Aquí mandas el JSON a tu FastAPI incluyendo el campo 'canal'
-            const payload = {
-                telefono: tel,
-                mensaje: msg,
-                fecha: fechaVal.toISOString(),
-                canal: canalSeleccionado // 'tg' o 'wa'
-            };
-
-            tg.HapticFeedback.notificationOccurred('success');
-            tg.showPopup({
-                title: '✅ ¡Programado!',
-                message: `Enviaremos tu mensaje por ${canalSeleccionado === 'tg' ? 'Telegram' : 'WhatsApp'} al número ${tel}.`,
-                buttons: [{ type: 'ok' }]
-            }, () => tg.close());
+        function setCanal(tipo) {
+            canal = tipo;
+            document.getElementById('btn-tg').className = tipo === 'tg' ? 'flex-1 py-2 rounded-lg text-[10px] font-bold bg-green-500 text-white shadow-lg' : 'flex-1 py-2 rounded-lg text-[10px] font-bold text-gray-500';
+            document.getElementById('btn-wa').className = tipo === 'wa' ? 'flex-1 py-2 rounded-lg text-[10px] font-bold bg-green-500 text-white shadow-lg' : 'flex-1 py-2 rounded-lg text-[10px] font-bold text-gray-500';
         }
+
+        function guardarRegistro() {
+            const tel = document.getElementById('telefono').value;
+            const msg = document.getElementById('mensaje').value;
+            const fec = document.getElementById('fecha').value;
+            const editId = document.getElementById('edit-id').value;
+
+            if (!/^\d{10}$/.test(tel) || !msg || !fec) {
+                tg.showAlert("⚠️ Revisa los datos, compa.");
+                return;
+            }
+
+            if (editId) {
+                const idx = mensajes.findIndex(m => m.id == editId);
+                mensajes[idx] = { id: editId, tel, msg, fec, canal };
+                tg.showAlert("✅ Registro actualizado.");
+            } else {
+                const nuevo = { id: Date.now(), tel, msg, fec, canal };
+                mensajes.push(nuevo);
+                tg.showAlert("🚀 Registro agendado.");
+            }
+
+            localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
+            limpiarForm();
+            switchTab('list');
+        }
+
+        function renderList() {
+            const cont = document.getElementById('contenedor-mensajes');
+            const vacio = document.getElementById('lista-vacia');
+            document.getElementById('count-badge').innerText = mensajes.length;
+
+            if (mensajes.length === 0) {
+                vacio.classList.remove('hidden');
+                cont.innerHTML = '';
+                return;
+            }
+
+            vacio.classList.add('hidden');
+            cont.innerHTML = mensajes.map(m => `
+                <div class="msg-card p-5 rounded-[2rem] space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[9px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
+                            <h3 class="text-lg font-bold">${m.tel}</h3>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editar(${m.id})" class="p-2 bg-white/5 rounded-full text-xs">✏️</button>
+                            <button onclick="eliminar(${m.id})" class="p-2 bg-red-500/10 text-red-400 rounded-full text-xs font-bold">🗑️</button>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm line-clamp-2">${m.msg}</p>
+                    <div class="text-[10px] text-gray-600 font-mono italic">📅 ${m.fec.replace('T', ' ')}</div>
+                </div>
+            `).join('');
+        }
+
+        function eliminar(id) {
+            tg.showConfirm("¿Quieres borrar este recordatorio?", (confirm) => {
+                if (confirm) {
+                    mensajes = mensajes.filter(m => m.id !== id);
+                    localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
+                    renderList();
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+            });
+        }
+
+        function editar(id) {
+            const m = mensajes.find(msg => msg.id === id);
+            document.getElementById('telefono').value = m.tel;
+            document.getElementById('mensaje').value = m.msg;
+            document.getElementById('fecha').value = m.fec;
+            document.getElementById('edit-id').value = m.id;
+            setCanal(m.canal);
+            switchTab('form');
+            document.getElementById('btnMain').innerText = "ACTUALIZAR REGISTRO";
+        }
+
+        function limpiarForm() {
+            document.getElementById('telefono').value = '';
+            document.getElementById('mensaje').value = '';
+            document.getElementById('edit-id').value = '';
+            document.getElementById('btnMain').innerText = "AGENDAR RECORDATORIO";
+            // Reset fecha +1h
+            const d = new Date(); d.setHours(d.getHours() + 1);
+            document.getElementById('fecha').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        }
+
+        // Init
+        limpiarForm();
+        renderList();
     </script>
 </body>
 

@@ -28,6 +28,14 @@
             transition: all 0.3s;
         }
 
+        .accent-wa {
+            color: #10b981;
+        }
+
+        .accent-tg {
+            color: #3b82f6;
+        }
+
         .border-wa:focus {
             border-color: #10b981 !important;
         }
@@ -38,20 +46,18 @@
 
         .tab-active-wa {
             color: #10b981;
-            border-bottom: 3px solid #10b981;
+            border-bottom: 2px solid #10b981;
         }
 
         .tab-active-tg {
             color: #3b82f6;
-            border-bottom: 3px solid #3b82f6;
+            border-bottom: 2px solid #3b82f6;
         }
 
         .filter-pill {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.2s;
-            min-width: 100px;
-            /* Chips más grandes */
         }
 
         .filter-pill.active-wa {
@@ -103,35 +109,35 @@
             <h1 class="text-3xl font-black italic tracking-tighter transition-colors duration-500">
                 Maiba<span id="brand-sync" class="text-green-500 text-4xl transition-colors duration-500">Sync</span>
             </h1>
-            <p class="text-[10px] text-gray-600 font-bold tracking-[0.3em] uppercase mt-1">Enterprise Security Protocol
+            <p class="text-[9px] text-gray-600 font-bold tracking-[0.3em] uppercase mt-1">Enterprise Security Protocol
             </p>
         </div>
 
         <!-- TABS -->
         <div class="flex border-b border-gray-800 mb-6">
             <button onclick="switchTab('form')" id="tab-form"
-                class="flex-1 py-5 font-black text-sm tracking-widest tab-active-wa uppercase transition-all">Programar</button>
+                class="flex-1 py-4 font-black text-xs tracking-widest tab-active-wa uppercase transition-all">Programar</button>
             <button onclick="switchTab('list')" id="tab-list"
-                class="flex-1 py-5 font-black text-sm tracking-widest text-gray-500 uppercase transition-all">Mis
+                class="flex-1 py-4 font-black text-xs tracking-widest text-gray-500 uppercase transition-all">Mis
                 Mensajes</button>
         </div>
 
         <!-- VISTA FORMULARIO -->
-        <div id="view-form" class="glass-card rounded-[2.5rem] p-7 space-y-6">
+        <div id="view-form" class="glass-card rounded-[2.5rem] p-7 space-y-5">
             <input type="hidden" id="edit-id">
 
-            <div class="flex bg-black/40 p-1.5 rounded-2xl border border-white/5">
+            <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 <button onclick="setCanal('tg')" id="btn-tg"
-                    class="flex-1 py-4 rounded-xl text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    class="flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path
                             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.18z" />
                     </svg>
                     Telegram
                 </button>
                 <button onclick="setCanal('wa')" id="btn-wa"
-                    class="flex-1 py-4 rounded-xl text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 transition-all shadow-lg">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    class="flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 transition-all shadow-lg">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path
                             d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.672 1.433 5.66 1.434h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                     </svg>
@@ -139,49 +145,46 @@
                 </button>
             </div>
 
-            <div class="space-y-2">
-                <label class="text-[11px] font-black text-gray-500 uppercase ml-1">Teléfonos (Máx 3, por coma)</label>
-                <!-- Usamos type="tel" para teclado numérico en móvil -->
-                <input type="tel" id="telefono" placeholder="6441112233, ..."
-                    class="input-boutique border-wa w-full p-5 rounded-2xl text-white outline-none text-xl font-black italic">
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfonos (Máx 3, por coma)</label>
+                <input type="text" id="telefono" placeholder="6441112233"
+                    class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-lg font-bold">
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-1">
                 <div class="flex justify-between items-center px-1">
-                    <label class="text-[11px] font-black text-gray-500 uppercase">Mensaje</label>
-                    <span id="char-count" class="text-[11px] font-mono text-gray-500 font-bold">0 / 500</span>
+                    <label class="text-[10px] font-black text-gray-500 uppercase">Mensaje</label>
+                    <span id="char-count" class="text-[10px] font-mono text-gray-500">0 / 500</span>
                 </div>
-                <textarea id="mensaje" rows="4" maxlength="500" oninput="updateCharCount(this)"
-                    class="input-boutique border-wa w-full p-5 rounded-2xl text-white outline-none text-lg font-medium resize-none"></textarea>
+                <textarea id="mensaje" rows="3" maxlength="500" oninput="updateCharCount(this)"
+                    class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base resize-none"></textarea>
             </div>
 
-            <div class="space-y-2">
-                <label class="text-[11px] font-black text-gray-500 uppercase ml-1">Fecha y Hora</label>
+            <div class="space-y-1">
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha y Hora</label>
                 <input type="datetime-local" id="fecha"
-                    class="input-boutique border-wa w-full p-5 rounded-2xl text-white outline-none text-lg font-bold">
+                    class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base">
             </div>
 
             <button onclick="guardarRegistro()" id="btnMain"
-                class="w-full py-6 bg-white text-black rounded-[2rem] font-black text-sm uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all">
+                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">
                 Agendar Recordatorio
             </button>
         </div>
 
         <!-- VISTA LISTADO -->
         <div id="view-list" class="hidden space-y-6">
-            <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="setFilter('all')" id="f-all"
-                    class="filter-pill active-wa py-4 rounded-2xl text-[11px] uppercase font-black">Todos</button>
+                    class="filter-pill active-wa px-5 py-2 rounded-full text-[10px] uppercase font-bold">Todos</button>
                 <button onclick="setFilter('wa')" id="f-wa"
-                    class="filter-pill py-4 rounded-2xl text-[11px] uppercase font-black">WhatsApp</button>
+                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">WhatsApp</button>
                 <button onclick="setFilter('tg')" id="f-tg"
-                    class="filter-pill py-4 rounded-2xl text-[11px] uppercase font-black">Telegram</button>
+                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">Telegram</button>
             </div>
-
-            <div id="contenedor-mensajes" class="space-y-5"></div>
-
+            <div id="contenedor-mensajes" class="space-y-4"></div>
             <button onclick="cargarMas()" id="btn-more"
-                class="hidden w-full py-5 border-2 border-dashed border-gray-800 rounded-3xl text-gray-500 text-[11px] font-black uppercase tracking-widest">
+                class="hidden w-full py-4 border border-dashed border-gray-700 rounded-2xl text-gray-500 text-[10px] font-black uppercase tracking-widest transition-colors">
                 Cargar más mensajes
             </button>
         </div>
@@ -201,11 +204,11 @@
         function setCanal(tipo) {
             canal = tipo;
             const isWa = tipo === 'wa';
-            document.getElementById('btn-wa').className = isWa ? 'flex-1 py-4 rounded-xl text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-4 rounded-xl text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
-            document.getElementById('btn-tg').className = !isWa ? 'flex-1 py-4 rounded-xl text-xs font-black bg-blue-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-4 rounded-xl text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
+            document.getElementById('btn-wa').className = isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
+            document.getElementById('btn-tg').className = !isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
             document.getElementById('brand-sync').className = isWa ? 'text-green-500 text-4xl transition-colors' : 'text-blue-500 text-4xl transition-colors';
             updateThemeStyles(isWa);
-            tg.HapticFeedback.impactOccurred('medium');
+            tg.HapticFeedback.impactOccurred('light');
         }
 
         function updateThemeStyles(isWa) {
@@ -227,8 +230,8 @@
             document.getElementById('view-list').classList.toggle('hidden', view !== 'list');
             const tabForm = document.getElementById('tab-form');
             const tabList = document.getElementById('tab-list');
-            tabForm.className = `flex-1 py-5 font-black text-sm tracking-widest uppercase transition-all ${view === 'form' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-            tabList.className = `flex-1 py-5 font-black text-sm tracking-widest uppercase transition-all ${view === 'list' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
+            tabForm.className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'form' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
+            tabList.className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'list' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
             if (view === 'list') renderList();
             tg.HapticFeedback.impactOccurred('medium');
         }
@@ -240,6 +243,7 @@
             ['f-all', 'f-wa', 'f-tg'].forEach(id => document.getElementById(id).classList.remove('active-wa', 'active-tg'));
             document.getElementById(`f-${f}`).classList.add(isWa ? 'active-wa' : 'active-tg');
             renderList();
+            tg.HapticFeedback.impactOccurred('light');
         }
 
         function renderList() {
@@ -248,26 +252,24 @@
             let filtrados = mensajes.filter(m => filtroActual === 'all' || m.canal === filtroActual);
             filtrados.sort((a, b) => new Date(a.fec) - new Date(b.fec));
             const visible = filtrados.slice(0, itemsAMostrar);
-
             if (filtrados.length === 0) {
-                cont.innerHTML = '<div class="text-center py-24 text-gray-700 font-black uppercase text-[12px] tracking-[0.4em]">Sin mensajes</div>';
+                cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold uppercase text-[10px] tracking-widest">Sin mensajes</div>';
                 btnMore.classList.add('hidden');
                 return;
             }
-
             cont.innerHTML = visible.map((m, index) => `
-                <div class="msg-card p-7 rounded-[2.5rem] space-y-4 animate-card" style="animation-delay: ${index * 0.05}s">
-                    <div class="flex justify-between items-start">
-                        <span class="text-[11px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
-                        <div class="flex gap-6">
-                            <button onclick="editar(${m.id})" class="text-xl p-2 active:scale-90 transition-transform">✏️</button>
-                            <button onclick="eliminar(${m.id})" class="text-xl p-2 active:scale-90 transition-transform">🗑️</button>
+                <div class="msg-card p-6 rounded-[2rem] space-y-3 animate-card" style="animation-delay: ${index * 0.05}s">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
+                        <div class="flex gap-4">
+                            <button onclick="editar(${m.id})" class="opacity-70 hover:opacity-100">✏️</button>
+                            <button onclick="eliminar(${m.id})" class="opacity-70 hover:opacity-100">🗑️</button>
                         </div>
                     </div>
-                    <h3 class="text-lg font-black text-white tracking-tighter break-all">${m.tel}</h3>
-                    <p class="text-gray-300 text-base leading-relaxed font-medium">${m.msg}</p>
-                    <div class="text-[11px] text-gray-500 font-black pt-4 border-t border-white/5 flex justify-between">
-                        <span class="text-white uppercase tracking-tighter">${m.fec.replace('T', ' • ')}</span>
+                    <h3 class="text-sm font-black text-white tracking-tight break-all">${m.tel}</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium">${m.msg}</p>
+                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 flex justify-between">
+                        <span class="text-white">${m.fec.replace('T', ' — ')}</span>
                     </div>
                 </div>
             `).join('');
@@ -279,17 +281,71 @@
             renderList();
         }
 
+        function guardarRegistro() {
+            const telInput = document.getElementById('telefono').value.trim();
+            const msg = document.getElementById('mensaje').value.trim();
+            const fecStr = document.getElementById('fecha').value;
+            const editId = document.getElementById('edit-id').value;
+
+            const tels = [...new Set(telInput.split(',').map(t => t.trim()).filter(t => t !== ""))];
+
+            // 1. VALIDACIONES BÁSICAS
+            if (tels.length === 0) return tg.showAlert("Ingresa al menos un número.");
+            if (tels.length > 3) return tg.showAlert("⚠️ Máximo 3 números por registro.");
+            if (!tels.every(t => /^\d{10}$/.test(t))) return tg.showAlert("Los números deben ser de 10 dígitos.");
+            if (!msg || !fecStr) return tg.showAlert("Faltan datos.");
+
+            const fechaNueva = new Date(fecStr);
+            const ahora = new Date();
+            const hora = fechaNueva.getHours();
+            const soloFecha = fecStr.split('T')[0];
+
+            // 2. REGLA: PASADO
+            if (fechaNueva < ahora) return tg.showAlert("⚠️ No puedes programar en el pasado.");
+
+            // 3. REGLA: HORARIO (07:00 a 21:00)
+            if (hora < 7 || hora >= 21) return tg.showAlert("⚠️ Horario permitido: 07:00 AM a 09:00 PM.");
+
+            for (let t of tels) {
+                // 4. REGLA: LÍMITE DIARIO (5 por número)
+                const conteoDia = mensajes.filter(m => m.tel.includes(t) && m.fec.startsWith(soloFecha) && m.id != editId).length;
+                if (conteoDia >= 5) return tg.showAlert(`⚠️ El número ${t} ya tiene 5 mensajes para este día.`);
+
+                // 5. REGLA: DIFERENCIA DE 1 HORA
+                const colision = mensajes.some(m => {
+                    if (m.id == editId) return false;
+                    if (m.tel.includes(t)) {
+                        const diffMinutos = Math.abs(new Date(m.fec) - fechaNueva) / (1000 * 60);
+                        return diffMinutos < 60;
+                    }
+                    return false;
+                });
+                if (colision) return tg.showAlert(`⚠️ El número ${t} ya tiene un envío cerca de esa hora (mínimo 1hr de diferencia).`);
+            }
+
+            // GUARDADO
+            if (editId) {
+                const idx = mensajes.findIndex(m => m.id == editId);
+                mensajes[idx] = { id: editId, tel: tels.join(', '), msg, fec: fecStr, canal };
+            } else {
+                mensajes.push({ id: Date.now(), tel: tels.join(', '), msg, fec: fecStr, canal });
+            }
+
+            localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
+            tg.HapticFeedback.notificationOccurred('success');
+            limpiarForm();
+            switchTab('list');
+        }
         function eliminar(id) {
-            tg.showConfirm("¿Seguro que quieres eliminar este mensaje?", (confirmado) => {
+            tg.showConfirm("¿Eliminar este mensaje?", (confirmado) => {
                 if (confirmado) {
                     mensajes = mensajes.filter(m => m.id !== id);
                     localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-                    renderList(); // Refrescar la lista inmediatamente
+                    renderList(); // Refresca la vista inmediatamente
                     tg.HapticFeedback.notificationOccurred('warning');
                 }
             });
         }
-
         function editar(id) {
             const m = mensajes.find(msg => msg.id === id);
             document.getElementById('telefono').value = m.tel;
@@ -299,46 +355,7 @@
             updateCharCount(document.getElementById('mensaje'));
             setCanal(m.canal);
             switchTab('form');
-            document.getElementById('btnMain').innerText = "Actualizar Cambios";
-        }
-
-        function guardarRegistro() {
-            const telInput = document.getElementById('telefono').value.trim();
-            const msg = document.getElementById('mensaje').value.trim();
-            const fecStr = document.getElementById('fecha').value;
-            const editId = document.getElementById('edit-id').value;
-
-            const tels = [...new Set(telInput.split(',').map(t => t.trim()).filter(t => t !== ""))];
-
-            if (tels.length === 0) return tg.showAlert("Falta el número de teléfono.");
-            if (tels.length > 3) return tg.showAlert("Máximo 3 números.");
-            if (!tels.every(t => /^\d{10}$/.test(t))) return tg.showAlert("Los números deben tener 10 dígitos exactos.");
-            if (!msg) return tg.showAlert("Escribe un mensaje.");
-            if (!fecStr) return tg.showAlert("Selecciona fecha y hora.");
-
-            const fechaNueva = new Date(fecStr);
-            const ahora = new Date();
-            const soloFecha = fechaNueva.toISOString().split('T')[0];
-
-            if (fechaNueva < ahora) return tg.showAlert("No puedes viajar al pasado.");
-
-            // Validaciones de seguridad
-            for (let t of tels) {
-                const conteoDia = mensajes.filter(m => m.tel.includes(t) && m.fec.startsWith(soloFecha) && m.id != editId).length;
-                if (conteoDia >= 5) return tg.showAlert(`Límite diario alcanzado para ${t}.`);
-            }
-
-            if (editId) {
-                const idx = mensajes.findIndex(m => m.id == editId);
-                mensajes[idx] = { id: parseInt(editId), tel: tels.join(', '), msg, fec: fecStr, canal };
-            } else {
-                mensajes.push({ id: Date.now(), tel: tels.join(', '), msg, fec: fecStr, canal });
-            }
-
-            localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-            tg.HapticFeedback.notificationOccurred('success');
-            limpiarForm();
-            switchTab('list');
+            document.getElementById('btnMain').innerText = "Actualizar";
         }
 
         function limpiarForm() {

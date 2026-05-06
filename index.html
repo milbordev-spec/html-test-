@@ -127,6 +127,13 @@
             document.documentElement.classList.add('dark');
         }
 
+        // ========== 🔧 CONFIGURACIÓN: Cambia esta URL cuando uses ngrok ==========
+        // Cuando ejecutes ngrok, reemplaza esta URL con la que te dé ngrok
+        // Ejemplo: const API_BASE_URL = "https://abc123.ngrok.io";
+        const API_BASE_URL = "http://localhost:8083";  // Para pruebas locales
+
+        // =========================================================================
+
         let currentProductoId = null;
         let currentCodigo = null;
 
@@ -158,6 +165,8 @@
                 } catch (error) {
                     tg.showAlert('Error al leer el código');
                 }
+            } else {
+                tg.showAlert('Tu navegador no soporta escáner nativo. Usa entrada manual.');
             }
             scannerInput.value = '';
         };
@@ -173,7 +182,8 @@
             document.getElementById('mensajeInicial').classList.add('hidden');
 
             try {
-                const response = await fetch(`/api/check_product?codigo=${encodeURIComponent(codigo)}`);
+                // 🔧 USAR LA URL BASE CONFIGURADA
+                const response = await fetch(`${API_BASE_URL}/api/check_product?codigo=${encodeURIComponent(codigo)}`);
                 const data = await response.json();
 
                 if (data.exists) {
@@ -182,8 +192,6 @@
                     document.getElementById('productoMarca').textContent = data.marca ? `Marca: ${data.marca}` : '';
                     document.getElementById('formNuevoProducto').classList.add('hidden');
                     document.getElementById('formLote').classList.remove('hidden');
-
-                    // Renderizar lotes
                     renderizarLotes(data.lotes);
                 } else {
                     currentProductoId = null;
@@ -191,7 +199,8 @@
                     document.getElementById('formLote').classList.add('hidden');
                 }
             } catch (error) {
-                tg.showAlert('Error de conexión');
+                console.error('Error:', error);
+                tg.showAlert(`Error de conexión. Asegúrate de que el bot esté corriendo en ${API_BASE_URL}`);
             }
         }
 
@@ -257,7 +266,7 @@
 
             if (confirmacion === 'destructive') {
                 try {
-                    const response = await fetch('/api/delete_lote', {
+                    const response = await fetch(`${API_BASE_URL}/api/delete_lote`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ lote_id: loteId })
@@ -276,32 +285,18 @@
         };
 
         window.editarCantidad = async (loteId, cantidadActual) => {
-            const nuevaCantidad = await tg.showPopup({
-                title: '✏️ Editar cantidad',
-                message: `Cantidad actual: ${cantidadActual}`,
-                buttons: [
-                    { type: 'cancel', text: 'Cancelar' },
-                    { type: 'ok', text: 'Guardar' }
-                ]
-            });
-
-            if (nuevaCantidad === 'ok') {
-                // Usar prompt nativo de Telegram
-                tg.showAlert('Función: Ingresa la nueva cantidad en el siguiente paso');
-                // Para simplificar, usamos prompt (en producción usar un input custom)
-                const cantidad = prompt('Nueva cantidad:', cantidadActual);
-                if (cantidad && !isNaN(parseFloat(cantidad))) {
-                    try {
-                        await fetch('/api/update_cantidad', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ lote_id: loteId, cantidad: parseFloat(cantidad) })
-                        });
-                        tg.showAlert('✅ Cantidad actualizada');
-                        await procesarCodigo(currentCodigo);
-                    } catch (error) {
-                        tg.showAlert('Error al actualizar');
-                    }
+            const cantidad = prompt('Nueva cantidad:', cantidadActual);
+            if (cantidad && !isNaN(parseFloat(cantidad))) {
+                try {
+                    await fetch(`${API_BASE_URL}/api/update_cantidad`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lote_id: loteId, cantidad: parseFloat(cantidad) })
+                    });
+                    tg.showAlert('✅ Cantidad actualizada');
+                    await procesarCodigo(currentCodigo);
+                } catch (error) {
+                    tg.showAlert('Error al actualizar');
                 }
             }
         };
@@ -316,7 +311,7 @@
             }
 
             try {
-                const response = await fetch('/api/save_product', {
+                const response = await fetch(`${API_BASE_URL}/api/save_product`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -350,7 +345,7 @@
             }
 
             try {
-                const response = await fetch('/api/save_lote', {
+                const response = await fetch(`${API_BASE_URL}/api/save_lote`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

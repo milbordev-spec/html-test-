@@ -3,87 +3,49 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MaibaSync Secure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Vendedor Pro - Control de Caducidades</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        body {
-            background-color: #05070a;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-            transition: all 0.5s ease;
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .glass-card {
-            background: rgba(17, 25, 40, 0.75);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .btn-scanner {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            transition: all 0.2s ease;
         }
 
-        .input-boutique {
-            background: #0f172a !important;
-            border: 1px solid #1e293b;
-            transition: all 0.3s;
+        .btn-scanner:active {
+            transform: scale(0.97);
         }
 
-        /* Estados dinámicos */
-        .accent-wa {
-            color: #10b981;
+        .btn-finalizar {
+            background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
         }
 
-        .accent-tg {
-            color: #3b82f6;
+        .btn-reporte {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
 
-        .border-wa:focus {
-            border-color: #10b981 !important;
+        .btn-json {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
         }
 
-        .border-tg:focus {
-            border-color: #3b82f6 !important;
+        .btn-venta {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         }
 
-        .tab-active-wa {
-            color: #10b981;
-            border-bottom: 2px solid #10b981;
-        }
-
-        .tab-active-tg {
-            color: #3b82f6;
-            border-bottom: 2px solid #3b82f6;
-        }
-
-        .filter-pill {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.2s;
-        }
-
-        .filter-pill.active-wa {
-            background: #10b981;
-            color: black;
-            border-color: #10b981;
-            font-weight: 900;
-        }
-
-        .filter-pill.active-tg {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-            font-weight: 900;
-        }
-
-        .msg-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(8px);
             }
 
             to {
@@ -92,275 +54,894 @@
             }
         }
 
-        .animate-card {
-            animation: fadeIn 0.4s ease forwards;
+        #reader,
+        #ventaReader {
+            width: 100%;
+        }
+
+        #reader video,
+        #ventaReader video {
+            width: 100%;
+            border-radius: 1rem;
+            border: 2px solid #3b82f6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+
+        .tab-active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .tab-inactive {
+            background: #1f2937;
+            color: #9ca3af;
+        }
+
+        input,
+        select,
+        textarea {
+            transition: all 0.2s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            transform: scale(1.01);
+        }
+
+        .glass-header {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
 
-<body class="p-4 min-h-screen">
+<body class="bg-black min-h-screen">
+    <div class="max-w-md mx-auto px-4 py-3 pb-24">
 
-    <div class="max-w-md mx-auto space-y-4">
-        <!-- HEADER -->
-        <div class="text-center pt-4 mb-2">
-            <h1 class="text-3xl font-black italic tracking-tighter transition-colors duration-500">
-                Maiba<span id="brand-sync" class="text-green-500 text-4xl transition-colors duration-500">Sync</span>
-            </h1>
-        </div>
-
-        <!-- TABS -->
-        <div class="flex border-b border-gray-800 mb-6">
-            <button onclick="switchTab('form')" id="tab-form"
-                class="flex-1 py-4 font-black text-xs tracking-widest tab-active-wa uppercase transition-all">Programar</button>
-            <button onclick="switchTab('list')" id="tab-list"
-                class="flex-1 py-4 font-black text-xs tracking-widest text-gray-500 uppercase transition-all">Mis
-                Mensajes</button>
-        </div>
-
-        <!-- VISTA FORMULARIO -->
-        <div id="view-form" class="glass-card rounded-[2.5rem] p-7 space-y-5">
-            <input type="hidden" id="edit-id">
-
-            <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
-                <button onclick="setCanal('tg')" id="btn-tg"
-                    class="flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.18z" />
-                    </svg>
-                    Telegram
-                </button>
-                <button onclick="setCanal('wa')" id="btn-wa"
-                    class="flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 transition-all shadow-lg">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.672 1.433 5.66 1.434h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                    </svg>
-                    WhatsApp
-                </button>
-            </div>
-
-            <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfono</label>
-                <input type="tel" id="telefono" maxlength="10" placeholder="6440000000"
-                    class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-lg font-bold">
-            </div>
-
-            <div class="space-y-1">
-                <div class="flex justify-between items-center px-1">
-                    <label class="text-[10px] font-black text-gray-500 uppercase">Mensaje</label>
-                    <span id="char-count" class="text-[10px] font-mono text-gray-500">0 / 500</span>
+        <!-- Header -->
+        <div class="glass-header rounded-2xl shadow-xl p-4 mb-4 fade-in border border-gray-800 sticky top-0 z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl shadow-lg">
+                        📦</div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white">Vendedor Pro</h1>
+                        <p class="text-[10px] text-gray-400">Control | Ventas | Caducidades</p>
+                    </div>
                 </div>
-                <textarea id="mensaje" rows="3" maxlength="500" oninput="updateCharCount(this)"
-                    class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base resize-none"></textarea>
+                <button id="editarComercioBtn"
+                    class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-full transition-all flex items-center gap-1">
+                    <span>🏪</span> <span id="nombreComercio">Mi Tienda</span>
+                </button>
             </div>
-
-            <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha</label>
-                <input type="datetime-local" id="fecha"
-                    class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base">
-            </div>
-
-            <button onclick="guardarRegistro()" id="btnMain"
-                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">
-                Agendar Recordatorio
-            </button>
         </div>
 
-        <!-- VISTA LISTADO -->
-        <div id="view-list" class="hidden space-y-6">
-            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="setFilter('all')" id="f-all"
-                    class="filter-pill active-wa px-5 py-2 rounded-full text-[10px] uppercase font-bold">Todos</button>
-                <button onclick="setFilter('wa')" id="f-wa"
-                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">WhatsApp</button>
-                <button onclick="setFilter('tg')" id="f-tg"
-                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">Telegram</button>
-            </div>
-
-            <div id="contenedor-mensajes" class="space-y-4"></div>
-
-            <button onclick="cargarMas()" id="btn-more"
-                class="hidden w-full py-4 border border-dashed border-gray-700 rounded-2xl text-gray-500 text-[10px] font-black uppercase tracking-widest transition-colors">
-                Cargar más mensajes
-            </button>
+        <!-- Tabs (4 pestañas) -->
+        <div class="grid grid-cols-4 gap-1 mb-4">
+            <button id="tabInventario" class="tab-active py-2 rounded-lg font-semibold text-xs transition-all">📦
+                Control</button>
+            <button id="tabVentas" class="tab-inactive py-2 rounded-lg font-semibold text-xs transition-all">💰
+                Vender</button>
+            <button id="tabRuta" class="tab-inactive py-2 rounded-lg font-semibold text-xs transition-all">🚚 Inventario
+                Ruta</button>
+            <button id="tabReportes" class="tab-inactive py-2 rounded-lg font-semibold text-xs transition-all">⚠️ Por
+                vencer</button>
         </div>
+
+        <!-- ==================== PESTAÑA CONTROL ==================== -->
+        <div id="panelInventario" class="fade-in">
+            <div id="scannerContainer" class="hidden mb-4">
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-800">
+                    <div id="reader" style="width:100%;"></div>
+                    <button id="cancelScanner"
+                        class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition-all">❌
+                        Cancelar</button>
+                </div>
+            </div>
+            <button id="scanBtn"
+                class="btn-scanner w-full py-4 rounded-xl text-white font-bold text-base shadow-xl mb-3 flex items-center justify-center gap-2 transition-all active:scale-95">
+                <span class="text-xl">📷</span> REGISTRAR PRODUCTO
+            </button>
+            <div class="relative mb-4">
+                <input type="text" id="codigoManual" placeholder="✏️ O escribe el código manualmente"
+                    class="w-full p-3 border border-gray-800 rounded-xl text-center text-base bg-gray-900 text-white focus:outline-none focus:border-blue-500 transition-all">
+            </div>
+            <div id="contenidoDespuesEscaneo" class="hidden">
+                <div class="bg-gray-900 border-l-4 border-blue-500 p-3 rounded-xl mb-4 fade-in">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🔖</span>
+                        <div>
+                            <p class="text-[10px] text-gray-500">Código escaneado</p>
+                            <p class="font-mono font-bold text-blue-400 text-sm" id="codigoMostrado"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="formNuevoProducto"
+                    class="hidden bg-gray-900 rounded-xl p-5 shadow-xl mb-4 fade-in border border-gray-800">
+                    <div class="text-center mb-4"><span class="text-4xl">🆕</span>
+                        <h2 class="font-bold text-lg text-white mt-1">Producto nuevo</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <input type="text" id="nombreProducto" placeholder="Nombre del producto *"
+                            class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white">
+                        <input type="text" id="marcaProducto" placeholder="Marca"
+                            class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white">
+                        <input type="text" id="ubicacionProducto" placeholder="📍 Ubicación en tienda"
+                            class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white">
+                        <button id="guardarNuevoProductoBtn"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold">✅
+                            Guardar</button>
+                    </div>
+                </div>
+                <div id="formLote"
+                    class="hidden bg-gray-900 rounded-xl p-5 shadow-xl mb-4 fade-in border border-gray-800">
+                    <div class="text-center mb-4 pb-3 border-b border-gray-800">
+                        <span class="text-3xl">📦</span>
+                        <h2 class="font-bold text-xl text-white" id="productoNombre"></h2>
+                        <p class="text-xs text-gray-500 mt-1" id="productoMarca"></p>
+                        <p class="text-xs text-blue-500 mt-1" id="productoUbicacion"></p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-semibold text-gray-300 text-sm mb-3">➕ Agregar lote</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="lote" placeholder="Número de lote *"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-sm">
+                            <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-sm">
+                            <input type="date" id="fechaCaducidad"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-sm">
+                            <input type="text" id="ubicacionLote" placeholder="📍 Ubicación específica"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-sm">
+                            <div class="flex gap-2">
+                                <button id="guardarLoteBtn"
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm">💾
+                                    Guardar</button>
+                                <button id="finalizarProductoBtn"
+                                    class="btn-finalizar flex-1 text-white py-3 rounded-xl font-semibold text-sm">🏁
+                                    Finalizar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-800 pt-4">
+                        <h3 class="font-semibold text-gray-300 text-sm mb-2">📋 Lotes registrados</h3>
+                        <div id="listaDeLotes" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PESTAÑA VENDER ==================== -->
+        <div id="panelVentas" class="hidden fade-in">
+            <div class="bg-gray-900 rounded-xl p-4 shadow-xl border border-gray-800 mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">💰</span>
+                    <h2 class="font-bold text-lg text-white">Nueva Venta</h2>
+                </div>
+                <div class="mb-3">
+                    <label class="text-xs text-gray-500 block mb-1">Cliente (opcional)</label>
+                    <input type="text" id="clienteNombre" placeholder="Nombre del cliente"
+                        class="w-full p-2 border border-gray-800 rounded-lg bg-gray-800 text-white text-sm">
+                </div>
+
+                <button id="scanVentaBtn"
+                    class="btn-scanner w-full py-3 rounded-xl text-white font-bold text-sm shadow-xl mb-3 flex items-center justify-center gap-2 transition-all active:scale-95">
+                    <span class="text-lg">📷</span> ESCANEAR PRODUCTO
+                </button>
+                <div id="ventaScannerContainer" class="hidden mb-3">
+                    <div class="bg-gray-800 rounded-xl p-2">
+                        <div id="ventaReader" style="width:100%;"></div>
+                        <button id="cancelVentaScanner"
+                            class="w-full mt-2 bg-red-600 hover:bg-red-700 text-white py-1.5 rounded-lg text-sm">❌
+                            Cancelar</button>
+                    </div>
+                </div>
+
+                <div id="seleccionLoteContainer" class="hidden bg-gray-800 rounded-lg p-3 mb-3">
+                    <p class="text-xs text-gray-400 mb-2">Selecciona el lote:</p>
+                    <div id="listaLotesVenta" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                    <button id="cancelarSeleccionLote"
+                        class="w-full mt-2 bg-gray-700 text-white py-1.5 rounded-lg text-xs">Cancelar</button>
+                </div>
+
+                <div id="formCantidadVenta" class="hidden bg-gray-800 rounded-lg p-3 mb-3">
+                    <p class="text-xs text-gray-400 mb-1">Producto: <span id="ventaProductoNombreSel"
+                            class="text-white font-bold"></span></p>
+                    <p class="text-xs text-gray-400 mb-1">Lote: <span id="ventaLoteSel"
+                            class="text-white font-mono"></span></p>
+                    <p class="text-xs text-gray-400 mb-2">Disponible: <span id="ventaDisponibleSel"
+                            class="text-green-400"></span></p>
+                    <input type="number" id="ventaCantidadInput" placeholder="Cantidad a vender"
+                        class="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white text-sm mb-2">
+                    <div class="flex gap-2">
+                        <button id="confirmarAgregarVentaBtn"
+                            class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm">✅ Agregar</button>
+                        <button id="cancelarAgregarVentaBtn"
+                            class="flex-1 bg-gray-600 text-white py-2 rounded-lg text-sm">❌ Cancelar</button>
+                    </div>
+                </div>
+
+                <div id="carritoContainer" class="border-t border-gray-800 pt-3 mt-2">
+                    <h3 class="font-semibold text-gray-300 text-sm mb-2">🛒 Carrito</h3>
+                    <div id="listaCarrito" class="space-y-2 max-h-48 overflow-y-auto mb-3"></div>
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-800">
+                        <span class="text-gray-400 text-sm">Total:</span>
+                        <span id="totalVenta" class="text-xl font-bold text-green-400">$0.00</span>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button id="finalizarVentaBtn"
+                            class="btn-venta flex-1 text-white py-2 rounded-xl font-semibold text-sm">💸 Finalizar
+                            Venta</button>
+                        <button id="limpiarCarritoBtn"
+                            class="bg-gray-700 flex-1 text-white py-2 rounded-xl font-semibold text-sm">🗑️
+                            Limpiar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PESTAÑA INVENTARIO RUTA ==================== -->
+        <div id="panelRuta" class="hidden fade-in">
+            <div class="bg-gray-900 rounded-xl p-4 shadow-xl border border-gray-800 mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">🚚</span>
+                    <h2 class="font-bold text-lg text-white">Inventario de Ruta</h2>
+                </div>
+                <div class="mb-3">
+                    <label class="text-xs text-gray-500 block mb-1">Fecha de salida</label>
+                    <input type="date" id="fechaRuta"
+                        class="w-full p-2 border border-gray-800 rounded-lg bg-gray-800 text-white text-sm">
+                </div>
+                <button id="addProductoRutaBtn" class="bg-blue-600 w-full py-2 rounded-lg text-white text-sm mb-3">➕
+                    Agregar a ruta</button>
+                <div id="productoRutaForm" class="hidden bg-gray-800 rounded-lg p-3 mb-3">
+                    <select id="rutaProductoSelect"
+                        class="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white text-sm mb-2">
+                        <option value="">Seleccionar producto...</option>
+                    </select>
+                    <input type="text" id="rutaLote" placeholder="N° Lote"
+                        class="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white text-sm mb-2"
+                        readonly>
+                    <input type="number" id="rutaCantidad" placeholder="Cantidad"
+                        class="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white text-sm mb-2">
+                    <div class="flex gap-2">
+                        <button id="guardarRutaProductoBtn"
+                            class="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm">✅ Guardar</button>
+                        <button id="cancelarRutaFormBtn" class="flex-1 bg-gray-600 text-white py-2 rounded-lg text-sm">❌
+                            Cancelar</button>
+                    </div>
+                </div>
+                <div id="listaRutaInventario" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                <button id="exportarRutaJSONBtn"
+                    class="btn-json w-full mt-3 text-white py-2 rounded-xl font-semibold text-sm">📋 Exportar ruta
+                    (JSON)</button>
+            </div>
+        </div>
+
+        <!-- ==================== PESTAÑA POR VENCER ==================== -->
+        <div id="panelReportes" class="hidden fade-in">
+            <div class="bg-gray-900 rounded-xl p-4 shadow-xl border border-gray-800 mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">⚠️</span>
+                    <h2 class="font-bold text-lg text-white">Productos por vencer</h2>
+                </div>
+                <div class="grid grid-cols-4 gap-1 mb-4">
+                    <button id="filter7dias"
+                        class="bg-gray-800 hover:bg-blue-600 text-gray-300 text-xs py-2 rounded-lg">7 días</button>
+                    <button id="filter15dias"
+                        class="bg-gray-800 hover:bg-blue-600 text-gray-300 text-xs py-2 rounded-lg">15 días</button>
+                    <button id="filter30dias"
+                        class="bg-gray-800 hover:bg-blue-600 text-gray-300 text-xs py-2 rounded-lg">30 días</button>
+                    <button id="filterTodos" class="bg-blue-600 text-white text-xs py-2 rounded-lg">Todos</button>
+                </div>
+                <div id="listaProximosVencer" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                <div class="flex gap-2 mt-4">
+                    <button id="exportarReporteBtn"
+                        class="btn-reporte flex-1 text-white py-2 rounded-xl font-semibold text-sm">📎 Exportar
+                        TXT</button>
+                    <button id="exportarJSONBtn"
+                        class="btn-json flex-1 text-white py-2 rounded-xl font-semibold text-sm">📋 Exportar
+                        JSON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje inicial -->
+        <div id="mensajeInicial" class="text-center py-16 fade-in">
+            <div
+                class="bg-gray-900 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4 border border-gray-800">
+                <span class="text-5xl">🔍</span></div>
+            <p class="text-gray-400 text-base">Presiona para escanear</p>
+            <p class="text-gray-600 text-xs mt-1">Cámara se abrirá automáticamente</p>
+        </div>
+
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        let canal = 'wa';
-        let filtroActual = 'all';
-        let itemsAMostrar = 5;
-        let mensajes = JSON.parse(localStorage.getItem('maiba_msgs') || '[]');
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        tg.setBackgroundColor('#000000');
+        tg.setHeaderColor('#000000');
 
-        function updateCharCount(el) {
-            document.getElementById('char-count').innerText = `${el.value.length} / 500`;
-        }
+        let currentProductoId = null;
+        let currentCodigo = null;
+        let html5QrCode = null;
+        let html5QrCodeVenta = null;
+        let filtroActual = 30;
+        let carrito = [];
+        let inventarioRuta = [];
+        let ventaProductoActual = null;
+        let ventaLoteSeleccionado = null;
 
-        function setCanal(tipo) {
-            canal = tipo;
-            const isWa = tipo === 'wa';
-
-            // Colores de botones selector
-            document.getElementById('btn-wa').className = isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
-            document.getElementById('btn-tg').className = !isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
-
-            // Colores de Brand y Tabs
-            document.getElementById('brand-sync').className = isWa ? 'text-green-500 text-4xl transition-colors' : 'text-blue-500 text-4xl transition-colors';
-
-            updateThemeStyles(isWa);
-            tg.HapticFeedback.impactOccurred('light');
-        }
-
-        function updateThemeStyles(isWa) {
-            const inputs = document.querySelectorAll('.input-boutique');
-            inputs.forEach(input => {
-                input.classList.remove('border-wa', 'border-tg');
-                input.classList.add(isWa ? 'border-wa' : 'border-tg');
-            });
-
-            const tabForm = document.getElementById('tab-form');
-            if (tabForm.classList.contains('tab-active-wa') || tabForm.classList.contains('tab-active-tg')) {
-                tabForm.classList.remove('tab-active-wa', 'tab-active-tg');
-                tabForm.classList.add(isWa ? 'tab-active-wa' : 'tab-active-tg');
+        let nombreComercio = localStorage.getItem('nombreComercio') || 'Mi Tienda';
+        document.getElementById('nombreComercio').textContent = nombreComercio;
+        document.getElementById('editarComercioBtn').onclick = () => {
+            const nuevo = prompt('Nombre de tu tienda/comercio:', nombreComercio);
+            if (nuevo && nuevo.trim()) {
+                nombreComercio = nuevo.trim();
+                localStorage.setItem('nombreComercio', nombreComercio);
+                document.getElementById('nombreComercio').textContent = nombreComercio;
+                tg.showAlert(`✅ Tienda: ${nombreComercio}`);
             }
+        };
 
-            // Actualizar filtros si estamos en la lista
-            const fAll = document.getElementById('f-all');
-            if (fAll.classList.contains('active-wa') || fAll.classList.contains('active-tg')) {
-                fAll.classList.remove('active-wa', 'active-tg');
-                fAll.classList.add(isWa ? 'active-wa' : 'active-tg');
+        let productosDB = [
+            {
+                id: 1, codigo: "7501031321307", nombre: "Leche Entera Lala", marca: "Lala", ubicacion: "Refrigerador 1", lotes: [
+                    { id: 101, lote: "L2403A", cantidad: 12, fecha_caducidad: "2025-06-15", ubicacion: "Estante A" },
+                    { id: 102, lote: "L2405B", cantidad: 5, fecha_caducidad: "2025-01-20", ubicacion: "Estante B" }
+                ]
+            },
+            {
+                id: 2, codigo: "1234567890123", nombre: "Pan Bimbo", marca: "Bimbo", ubicacion: "Pasillo 2", lotes: [
+                    { id: 201, lote: "P2401", cantidad: 8, fecha_caducidad: "2025-02-10", ubicacion: "Estante C" }
+                ]
             }
+        ];
+        let nextProductoId = 3;
+        let nextLoteId = 300;
+        let nextSaleId = 1;
+
+        function guardarDatos() {
+            localStorage.setItem('productosDB', JSON.stringify(productosDB));
+            localStorage.setItem('nextProductoId', nextProductoId);
+            localStorage.setItem('nextLoteId', nextLoteId);
+            localStorage.setItem('inventarioRuta', JSON.stringify(inventarioRuta));
         }
 
-        function switchTab(view) {
-            const isWa = canal === 'wa';
-            document.getElementById('view-form').classList.toggle('hidden', view !== 'form');
-            document.getElementById('view-list').classList.toggle('hidden', view !== 'list');
-
-            const tabForm = document.getElementById('tab-form');
-            const tabList = document.getElementById('tab-list');
-
-            tabForm.className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'form' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-            tabList.className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'list' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-
-            if (view === 'list') renderList();
-            tg.HapticFeedback.impactOccurred('medium');
+        function cargarDatos() {
+            const saved = localStorage.getItem('productosDB');
+            if (saved) {
+                productosDB = JSON.parse(saved);
+                nextProductoId = parseInt(localStorage.getItem('nextProductoId')) || 3;
+                nextLoteId = parseInt(localStorage.getItem('nextLoteId')) || 300;
+            }
+            const rutaSaved = localStorage.getItem('inventarioRuta');
+            if (rutaSaved) inventarioRuta = JSON.parse(rutaSaved);
+            renderizarRutaInventario();
+            actualizarSelectProductos();
         }
 
-        function setFilter(f) {
-            filtroActual = f;
-            itemsAMostrar = 5;
-            const isWa = canal === 'wa';
+        function escapar(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
 
-            ['f-all', 'f-wa', 'f-tg'].forEach(id => {
-                document.getElementById(id).classList.remove('active-wa', 'active-tg');
-            });
-
-            document.getElementById(`f-${f}`).classList.add(isWa ? 'active-wa' : 'active-tg');
-            renderList();
-            tg.HapticFeedback.impactOccurred('light');
-        }
-
-        function renderList() {
-            const cont = document.getElementById('contenedor-mensajes');
-            const btnMore = document.getElementById('btn-more');
-            let filtrados = mensajes.filter(m => filtroActual === 'all' || m.canal === filtroActual);
-
-            filtrados.sort((a, b) => new Date(a.fec) - new Date(b.fec));
-            const visible = filtrados.slice(0, itemsAMostrar);
-
-            if (filtrados.length === 0) {
-                cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold uppercase text-[10px] tracking-widest">Sin mensajes</div>';
-                btnMore.classList.add('hidden');
+        // ==================== CONTROL ====================
+        function renderizarLotes(lotes) {
+            const container = document.getElementById('listaDeLotes');
+            if (!lotes || lotes.length === 0) {
+                container.innerHTML = '<div class="text-center py-6 text-gray-500 text-sm">📭 No hay lotes registrados</div>';
                 return;
             }
-
-            cont.innerHTML = visible.map((m, index) => `
-                <div class="msg-card p-6 rounded-[2rem] space-y-3 animate-card" style="animation-delay: ${index * 0.05}s">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
-                        <div class="flex gap-4">
-                            <button onclick="editar(${m.id})" class="opacity-70 hover:opacity-100">✏️</button>
-                            <button onclick="eliminar(${m.id})" class="opacity-70 hover:opacity-100">🗑️</button>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-black text-white tracking-tight">${m.tel}</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium">${m.msg}</p>
-                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 flex justify-between">
-                        <span class="text-white">${m.fec.replace('T', ' — ')}</span>
-                    </div>
-                </div>
-            `).join('');
-
-            btnMore.classList.toggle('hidden', filtrados.length <= itemsAMostrar);
+            const ordenados = [...lotes].sort((a, b) => new Date(a.fecha_caducidad) - new Date(b.fecha_caducidad));
+            container.innerHTML = ordenados.map(lote => {
+                const diffDays = Math.ceil((new Date(lote.fecha_caducidad) - new Date()) / (1000 * 60 * 60 * 24));
+                let colorClass = 'text-green-400';
+                let badge = '<span class="text-[10px] bg-green-900 text-green-300 px-2 py-0.5 rounded-full">VIGENTE</span>';
+                if (diffDays < 0) { colorClass = 'text-red-400'; badge = '<span class="text-[10px] bg-red-900 text-red-300 px-2 py-0.5 rounded-full">VENCIDO</span>'; }
+                else if (diffDays < 30) { colorClass = 'text-orange-400'; badge = '<span class="text-[10px] bg-orange-900 text-orange-300 px-2 py-0.5 rounded-full">PRÓXIMO</span>'; }
+                const dias = diffDays > 0 ? `${diffDays} días` : diffDays === 0 ? 'HOY' : `Vencido hace ${Math.abs(diffDays)}d`;
+                return `<div class="bg-gray-800 rounded-xl p-3 border border-gray-700"><div class="flex justify-between items-start"><div class="flex-1"><div class="flex items-center gap-2 mb-2 flex-wrap"><span class="text-sm font-mono font-bold text-white">${escapar(lote.lote)}</span>${badge}</div><div class="space-y-1 text-xs"><div><span class="text-gray-500">📊 Cantidad:</span> <span class="font-semibold text-white">${lote.cantidad}</span></div><div><span class="text-gray-500">📅 Caduca:</span> <span class="font-semibold ${colorClass}">${lote.fecha_caducidad}</span> <span class="text-gray-600">(${dias})</span></div>${lote.ubicacion ? `<div><span class="text-gray-500">📍 Ubicación:</span> <span class="text-gray-300">${escapar(lote.ubicacion)}</span></div>` : ''}</div></div><div class="flex flex-col gap-1 ml-2"><button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" class="bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white px-2 py-1 rounded-lg text-xs">✏️</button><button onclick="eliminarLoteConMotivo(${lote.id})" class="bg-gray-700 hover:bg-red-600 text-gray-300 hover:text-white px-2 py-1 rounded-lg text-xs">🗑️</button></div></div></div>`;
+            }).join('');
         }
 
-        function cargarMas() {
-            itemsAMostrar += 5;
-            renderList();
-            tg.HapticFeedback.impactOccurred('light');
-        }
-
-        function guardarRegistro() {
-            const tel = document.getElementById('telefono').value.trim();
-            const msg = document.getElementById('mensaje').value.trim();
-            const fecStr = document.getElementById('fecha').value;
-            const editId = document.getElementById('edit-id').value;
-
-            if (!/^\d{10}$/.test(tel)) return tg.showAlert("Número inválido.");
-            if (!msg || !fecStr) return tg.showAlert("Faltan datos.");
-
-            if (editId) {
-                const idx = mensajes.findIndex(m => m.id == editId);
-                mensajes[idx] = { id: editId, tel, msg, fec: fecStr, canal };
-            } else {
-                mensajes.push({ id: Date.now(), tel, msg, fec: fecStr, canal });
-            }
-
-            localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-            tg.HapticFeedback.notificationOccurred('success');
-            limpiarForm();
-            switchTab('list');
-        }
-
-        function eliminar(id) {
-            tg.showConfirm("¿Eliminar?", (c) => {
-                if (c) {
-                    mensajes = mensajes.filter(m => m.id !== id);
-                    localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-                    renderList();
-                    tg.HapticFeedback.notificationOccurred('warning');
+        window.eliminarLoteConMotivo = (loteId) => {
+            tg.showPopup({
+                title: '⚠️ Motivo',
+                message: '¿Por qué se elimina?',
+                buttons: [
+                    { id: 'vencido', type: 'default', text: '📅 Vencido' },
+                    { id: 'defectuoso', type: 'default', text: '🔧 Defectuoso' },
+                    { id: 'vendido', type: 'default', text: '💰 Vendido' },
+                    { id: 'recogido', type: 'default', text: '🚚 Recogido' },
+                    { id: 'cancel', type: 'cancel', text: 'Cancelar' }
+                ]
+            }).then(buttonId => {
+                if (buttonId && buttonId !== 'cancel') {
+                    const motivo = { vencido: 'Vencido', defectuoso: 'Defectuoso', vendido: 'Vendido', recogido: 'Recogido por proveedor' }[buttonId];
+                    const producto = productosDB.find(p => p.id === currentProductoId);
+                    if (producto) {
+                        const loteEliminado = producto.lotes.find(l => l.id === loteId);
+                        if (loteEliminado) {
+                            let historial = localStorage.getItem('historialEliminaciones');
+                            historial = historial ? JSON.parse(historial) : [];
+                            historial.push({ producto: producto.nombre, lote: loteEliminado.lote, cantidad: loteEliminado.cantidad, fecha: new Date().toISOString(), motivo: motivo });
+                            localStorage.setItem('historialEliminaciones', JSON.stringify(historial));
+                            producto.lotes = producto.lotes.filter(l => l.id !== loteId);
+                            guardarDatos();
+                            renderizarLotes(producto.lotes);
+                            tg.showAlert(`✅ Lote eliminado - Motivo: ${motivo}`);
+                        }
+                    }
                 }
             });
+        };
+
+        window.editarCantidad = (loteId, cantidadActual) => {
+            const nueva = prompt('Nueva cantidad:', cantidadActual);
+            if (nueva && !isNaN(parseFloat(nueva))) {
+                const producto = productosDB.find(p => p.id === currentProductoId);
+                if (producto) {
+                    const lote = producto.lotes.find(l => l.id === loteId);
+                    if (lote) { lote.cantidad = parseFloat(nueva); guardarDatos(); renderizarLotes(producto.lotes); tg.showAlert('✅ Cantidad actualizada'); }
+                }
+            }
+        };
+
+        function resetearApp() {
+            ['lote', 'cantidad', 'fechaCaducidad', 'ubicacionLote', 'nombreProducto', 'marcaProducto', 'ubicacionProducto', 'codigoManual'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
+            document.getElementById('formNuevoProducto').classList.add('hidden');
+            document.getElementById('formLote').classList.add('hidden');
+            document.getElementById('scannerContainer').classList.add('hidden');
+            document.getElementById('mensajeInicial').classList.remove('hidden');
+            document.getElementById('codigoMostrado').textContent = '';
+            document.getElementById('listaDeLotes').innerHTML = '';
+            if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop().catch(() => { });
+            currentProductoId = null;
+            currentCodigo = null;
         }
 
-        function editar(id) {
-            const m = mensajes.find(msg => msg.id === id);
-            document.getElementById('telefono').value = m.tel;
-            document.getElementById('mensaje').value = m.msg;
-            document.getElementById('fecha').value = m.fec;
-            document.getElementById('edit-id').value = m.id;
-            updateCharCount(document.getElementById('mensaje'));
-            setCanal(m.canal);
-            switchTab('form');
-            document.getElementById('btnMain').innerText = "Actualizar";
+        // ==================== VENTAS ====================
+        let ventaScannerActive = false;
+
+        async function startVentaScanner() {
+            document.getElementById('ventaScannerContainer').classList.remove('hidden');
+            if (ventaScannerActive) return;
+            ventaScannerActive = true;
+            html5QrCodeVenta = new Html5Qrcode("ventaReader");
+            try {
+                await html5QrCodeVenta.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 100 } },
+                    (decoded) => {
+                        html5QrCodeVenta.stop();
+                        document.getElementById('ventaScannerContainer').classList.add('hidden');
+                        buscarProductoParaVenta(decoded);
+                        ventaScannerActive = false;
+                    }, () => { });
+            } catch (err) { tg.showAlert(`Error: ${err}`); ventaScannerActive = false; }
         }
 
-        function limpiarForm() {
-            document.getElementById('telefono').value = '';
-            document.getElementById('mensaje').value = '';
-            document.getElementById('edit-id').value = '';
-            document.getElementById('char-count').innerText = "0 / 500";
-            document.getElementById('btnMain').innerText = "Agendar Recordatorio";
-            const d = new Date(); d.setHours(d.getHours() + 1);
-            document.getElementById('fecha').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        function stopVentaScanner() {
+            if (html5QrCodeVenta && html5QrCodeVenta.isScanning) html5QrCodeVenta.stop();
+            document.getElementById('ventaScannerContainer').classList.add('hidden');
+            ventaScannerActive = false;
         }
 
-        tg.ready();
-        setCanal('wa');
-        limpiarForm();
+        function buscarProductoParaVenta(codigo) {
+            const producto = productosDB.find(p => p.codigo === codigo);
+            if (!producto) { tg.showAlert('❌ Producto no encontrado'); return; }
+            const lotesDisponibles = producto.lotes.filter(l => l.cantidad > 0);
+            if (lotesDisponibles.length === 0) { tg.showAlert('❌ No hay stock disponible'); return; }
+            ventaProductoActual = producto;
+            if (lotesDisponibles.length === 1) {
+                ventaLoteSeleccionado = lotesDisponibles[0];
+                mostrarFormularioCantidad();
+            } else {
+                mostrarSelectorLotes(lotesDisponibles);
+            }
+        }
+
+        function mostrarSelectorLotes(lotes) {
+            const container = document.getElementById('listaLotesVenta');
+            container.innerHTML = lotes.map(lote => {
+                const diffDays = Math.ceil((new Date(lote.fecha_caducidad) - new Date()) / (1000 * 60 * 60 * 24));
+                let warning = diffDays < 30 ? `⚠️ ${diffDays} días` : '';
+                return `<button onclick="seleccionarLoteVenta(${lote.id})" class="w-full bg-gray-700 hover:bg-blue-600 p-2 rounded-lg text-left transition-all"><div class="flex justify-between"><span class="font-mono text-white">${escapar(lote.lote)}</span><span class="text-green-400">${lote.cantidad} uds</span></div><div class="text-xs text-gray-400">Caduca: ${lote.fecha_caducidad} ${warning}</div></button>`;
+            }).join('');
+            document.getElementById('seleccionLoteContainer').classList.remove('hidden');
+            document.getElementById('formCantidadVenta').classList.add('hidden');
+        }
+
+        window.seleccionarLoteVenta = (loteId) => {
+            ventaLoteSeleccionado = ventaProductoActual.lotes.find(l => l.id === loteId);
+            document.getElementById('seleccionLoteContainer').classList.add('hidden');
+            mostrarFormularioCantidad();
+        };
+
+        function mostrarFormularioCantidad() {
+            document.getElementById('ventaProductoNombreSel').textContent = ventaProductoActual.nombre;
+            document.getElementById('ventaLoteSel').textContent = ventaLoteSeleccionado.lote;
+            document.getElementById('ventaDisponibleSel').textContent = ventaLoteSeleccionado.cantidad;
+            document.getElementById('ventaCantidadInput').value = 1;
+            document.getElementById('ventaCantidadInput').max = ventaLoteSeleccionado.cantidad;
+            document.getElementById('formCantidadVenta').classList.remove('hidden');
+        }
+
+        function agregarAlCarrito() {
+            const cantidad = parseFloat(document.getElementById('ventaCantidadInput').value);
+            if (!cantidad || cantidad <= 0) { tg.showAlert('❌ Cantidad inválida'); return; }
+            if (cantidad > ventaLoteSeleccionado.cantidad) { tg.showAlert(`❌ Solo hay ${ventaLoteSeleccionado.cantidad} unidades`); return; }
+
+            ventaLoteSeleccionado.cantidad -= cantidad;
+            carrito.push({
+                id: Date.now(),
+                productId: ventaProductoActual.id,
+                productName: ventaProductoActual.nombre,
+                batchNumber: ventaLoteSeleccionado.lote,
+                quantity: cantidad,
+                unitPrice: 10,
+                subtotal: cantidad * 10
+            });
+
+            guardarDatos();
+            renderizarCarrito();
+            cancelarAgregarVenta();
+            tg.showAlert('✅ Producto agregado al carrito');
+        }
+
+        function cancelarAgregarVenta() {
+            document.getElementById('formCantidadVenta').classList.add('hidden');
+            document.getElementById('seleccionLoteContainer').classList.add('hidden');
+            ventaProductoActual = null;
+            ventaLoteSeleccionado = null;
+        }
+
+        function renderizarCarrito() {
+            const container = document.getElementById('listaCarrito');
+            if (carrito.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">🛒 Carrito vacío</div>';
+                document.getElementById('totalVenta').textContent = '$0.00';
+                return;
+            }
+            let total = 0;
+            container.innerHTML = carrito.map(item => {
+                total += item.subtotal;
+                return `<div class="bg-gray-800 rounded-lg p-2 text-xs"><div class="flex justify-between"><span class="font-bold text-white">${escapar(item.productName)}</span><button onclick="eliminarDelCarrito(${item.id})" class="text-red-400">🗑️</button></div><div class="text-gray-400">Lote: ${escapar(item.batchNumber)} | Cant: ${item.quantity} | $${item.subtotal}</div></div>`;
+            }).join('');
+            document.getElementById('totalVenta').textContent = `$${total.toFixed(2)}`;
+        }
+
+        window.eliminarDelCarrito = (id) => {
+            const item = carrito.find(i => i.id === id);
+            if (item) {
+                const producto = productosDB.find(p => p.id === item.productId);
+                if (producto) {
+                    const lote = producto.lotes.find(l => l.lote === item.batchNumber);
+                    if (lote) lote.cantidad += item.quantity;
+                }
+                carrito = carrito.filter(i => i.id !== id);
+                guardarDatos();
+                renderizarCarrito();
+            }
+        };
+
+        function finalizarVenta() {
+            if (carrito.length === 0) { tg.showAlert('❌ Carrito vacío'); return; }
+            const cliente = document.getElementById('clienteNombre').value.trim() || 'Cliente general';
+            const total = carrito.reduce((sum, i) => sum + i.subtotal, 0);
+            const venta = { saleId: nextSaleId++, storeName: nombreComercio, customerName: cliente, saleDate: new Date().toISOString(), items: carrito.map(i => ({ productName: i.productName, batchNumber: i.batchNumber, quantity: i.quantity, unitPrice: i.unitPrice, subtotal: i.subtotal })), total: total };
+            let historialVentas = localStorage.getItem('historialVentas');
+            historialVentas = historialVentas ? JSON.parse(historialVentas) : [];
+            historialVentas.push(venta);
+            localStorage.setItem('historialVentas', JSON.stringify(historialVentas));
+            navigator.clipboard.writeText(JSON.stringify(venta, null, 2));
+            tg.showConfirm('✅ Venta completada. Ticket copiado. ¿Enviar al cliente?', (confirmed) => { if (confirmed) tg.showAlert('📋 Ticket listo'); });
+            carrito = [];
+            document.getElementById('clienteNombre').value = '';
+            renderizarCarrito();
+            guardarDatos();
+        }
+
+        // ==================== INVENTARIO RUTA ====================
+        function renderizarRutaInventario() {
+            const container = document.getElementById('listaRutaInventario');
+            if (!inventarioRuta || inventarioRuta.length === 0) {
+                container.innerHTML = '<div class="text-center py-6 text-gray-500 text-sm">📭 No hay productos en ruta</div>';
+                return;
+            }
+            container.innerHTML = inventarioRuta.map(item => `
+                <div class="bg-gray-800 rounded-lg p-2 text-xs">
+                    <div class="flex justify-between">
+                        <span class="font-bold text-white">${escapar(item.productName)}</span>
+                        <button onclick="eliminarDeRuta(${item.id})" class="text-red-400">🗑️</button>
+                    </div>
+                    <div class="text-gray-400">Lote: ${escapar(item.batchNumber)} | Cant: ${item.quantity} | ${item.date}</div>
+                </div>
+            `).join('');
+        }
+
+        window.eliminarDeRuta = (id) => {
+            inventarioRuta = inventarioRuta.filter(i => i.id !== id);
+            guardarDatos();
+            renderizarRutaInventario();
+        };
+
+        function actualizarSelectProductos() {
+            const select = document.getElementById('rutaProductoSelect');
+            const loteInput = document.getElementById('rutaLote');
+            select.innerHTML = '<option value="">Seleccionar producto...</option>';
+            productosDB.forEach(p => {
+                p.lotes.forEach(l => {
+                    if (l.cantidad > 0) {
+                        select.innerHTML += `<option value="${p.id}|${l.lote}">${p.nombre} - Lote: ${l.lote} (${l.cantidad} uds)</option>`;
+                    }
+                });
+            });
+            select.onchange = () => {
+                const [productId, loteNum] = select.value.split('|');
+                if (loteNum) loteInput.value = loteNum;
+                else loteInput.value = '';
+            };
+        }
+
+        // ==================== REPORTES ====================
+        function obtenerProductosProximosAVencer(dias) {
+            const hoy = new Date();
+            const limite = new Date();
+            limite.setDate(hoy.getDate() + dias);
+            const resultados = [];
+            for (const producto of productosDB) {
+                for (const lote of producto.lotes) {
+                    const fechaCad = new Date(lote.fecha_caducidad);
+                    if (fechaCad <= limite && fechaCad >= hoy && lote.cantidad > 0) {
+                        resultados.push({
+                            productName: producto.nombre, brand: producto.marca, batchNumber: lote.lote,
+                            quantity: lote.cantidad, expiryDate: lote.fecha_caducidad,
+                            location: lote.ubicacion || producto.ubicacion || 'No especificada',
+                            daysRemaining: Math.ceil((fechaCad - hoy) / (1000 * 60 * 60 * 24))
+                        });
+                    }
+                }
+            }
+            return resultados.sort((a, b) => a.daysRemaining - b.daysRemaining);
+        }
+
+        function renderizarReportes() {
+            let productosFiltrados;
+            if (filtroActual === 0) {
+                productosFiltrados = [];
+                for (const p of productosDB) {
+                    for (const l of p.lotes) {
+                        if (l.cantidad > 0) {
+                            const diff = Math.ceil((new Date(l.fecha_caducidad) - new Date()) / (1000 * 60 * 60 * 24));
+                            productosFiltrados.push({ producto: p.nombre, marca: p.marca, lote: l.lote, cantidad: l.cantidad, caducidad: l.fecha_caducidad, ubicacion: l.ubicacion || p.ubicacion || 'N/E', diasRestantes: diff });
+                        }
+                    }
+                }
+                productosFiltrados = productosFiltrados.sort((a, b) => a.diasRestantes - b.diasRestantes);
+            } else {
+                const raw = obtenerProductosProximosAVencer(filtroActual);
+                productosFiltrados = raw.map(p => ({ producto: p.productName, marca: p.brand, lote: p.batchNumber, cantidad: p.quantity, caducidad: p.expiryDate, ubicacion: p.location, diasRestantes: p.daysRemaining }));
+            }
+            const container = document.getElementById('listaProximosVencer');
+            if (productosFiltrados.length === 0) { container.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm">✅ No hay productos próximos a vencer</div>'; return; }
+            container.innerHTML = productosFiltrados.map(p => {
+                let bgColor = 'bg-gray-800';
+                if (p.diasRestantes <= 7) bgColor = 'bg-red-900/30 border-red-800';
+                else if (p.diasRestantes <= 15) bgColor = 'bg-orange-900/30 border-orange-800';
+                return `<div class="${bgColor} p-3 rounded-xl border border-gray-700"><div class="flex justify-between items-start mb-2"><div><h3 class="font-bold text-white text-sm">${escapar(p.producto)}</h3><p class="text-[10px] text-gray-500">${p.marca ? escapar(p.marca) : 'Sin marca'}</p></div><span class="text-[10px] bg-blue-600 px-2 py-1 rounded-full">${p.diasRestantes} días</span></div><div class="space-y-1 text-xs"><div><span class="text-gray-500">🏷️ Lote:</span> <span class="font-mono text-gray-300">${escapar(p.lote)}</span></div><div><span class="text-gray-500">📊 Cantidad:</span> <span class="font-semibold text-white">${p.cantidad}</span></div><div><span class="text-gray-500">📅 Caduca:</span> <span class="font-semibold text-red-400">${p.caducidad}</span></div><div><span class="text-gray-500">📍 Ubicación:</span> <span class="text-gray-300">${escapar(p.ubicacion)}</span></div></div></div>`;
+            }).join('');
+        }
+
+        // ==================== ESCÁNER PRINCIPAL ====================
+        async function startScanner() {
+            document.getElementById('scannerContainer').classList.remove('hidden');
+            html5QrCode = new Html5Qrcode("reader");
+            try {
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 100 } },
+                    (decoded) => {
+                        html5QrCode.stop();
+                        document.getElementById('scannerContainer').classList.add('hidden');
+                        document.getElementById('codigoManual').value = decoded;
+                        procesarCodigo(decoded);
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }, () => { });
+            } catch (err) { tg.showAlert(`Error: ${err}`); }
+        }
+
+        async function procesarCodigo(codigo) {
+            currentCodigo = codigo;
+            document.getElementById('codigoMostrado').textContent = codigo;
+            document.getElementById('contenidoDespuesEscaneo').classList.remove('hidden');
+            document.getElementById('mensajeInicial').classList.add('hidden');
+            const producto = productosDB.find(p => p.codigo === codigo);
+            if (producto) {
+                currentProductoId = producto.id;
+                document.getElementById('productoNombre').textContent = producto.nombre;
+                document.getElementById('productoMarca').textContent = producto.marca ? `Marca: ${producto.marca}` : '';
+                document.getElementById('productoUbicacion').textContent = producto.ubicacion ? `📍 ${producto.ubicacion}` : '';
+                document.getElementById('formNuevoProducto').classList.add('hidden');
+                document.getElementById('formLote').classList.remove('hidden');
+                renderizarLotes(producto.lotes);
+            } else {
+                currentProductoId = null;
+                document.getElementById('formNuevoProducto').classList.remove('hidden');
+                document.getElementById('formLote').classList.add('hidden');
+            }
+        }
+
+        // ==================== EVENTOS ====================
+        document.getElementById('scanBtn').onclick = startScanner;
+        document.getElementById('cancelScanner').onclick = () => { if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop(); document.getElementById('scannerContainer').classList.add('hidden'); };
+        document.getElementById('codigoManual').onchange = (e) => { if (e.target.value) procesarCodigo(e.target.value); };
+        document.getElementById('guardarNuevoProductoBtn').onclick = () => {
+            const nombre = document.getElementById('nombreProducto').value.trim();
+            if (!nombre) { tg.showAlert('❌ Nombre obligatorio'); return; }
+            const nuevo = { id: nextProductoId++, codigo: currentCodigo, nombre: nombre, marca: document.getElementById('marcaProducto').value.trim(), ubicacion: document.getElementById('ubicacionProducto').value.trim(), lotes: [] };
+            productosDB.push(nuevo);
+            currentProductoId = nuevo.id;
+            guardarDatos();
+            actualizarSelectProductos();
+            tg.showAlert('✅ Producto guardado');
+            document.getElementById('formNuevoProducto').classList.add('hidden');
+            document.getElementById('formLote').classList.remove('hidden');
+            document.getElementById('productoNombre').textContent = nombre;
+            document.getElementById('productoMarca').textContent = nuevo.marca ? `Marca: ${nuevo.marca}` : '';
+            document.getElementById('productoUbicacion').textContent = nuevo.ubicacion ? `📍 ${nuevo.ubicacion}` : '';
+            document.getElementById('listaDeLotes').innerHTML = '<div class="text-center py-6 text-gray-500">📭 No hay lotes registrados</div>';
+            document.getElementById('nombreProducto').value = '';
+            document.getElementById('marcaProducto').value = '';
+            document.getElementById('ubicacionProducto').value = '';
+        };
+        document.getElementById('guardarLoteBtn').onclick = () => {
+            const lote = document.getElementById('lote').value.trim();
+            const cantidad = parseFloat(document.getElementById('cantidad').value);
+            const fecha = document.getElementById('fechaCaducidad').value;
+            if (!lote || !cantidad || !fecha) { tg.showAlert('❌ Complete todos los campos'); return; }
+            const producto = productosDB.find(p => p.id === currentProductoId);
+            if (producto) {
+                if (producto.lotes.some(l => l.lote === lote)) { tg.showAlert('❌ Lote ya existe'); return; }
+                producto.lotes.push({ id: nextLoteId++, lote: lote, cantidad: cantidad, fecha_caducidad: fecha, ubicacion: document.getElementById('ubicacionLote').value.trim() });
+                guardarDatos();
+                actualizarSelectProductos();
+                tg.showAlert('✅ Lote guardado');
+                document.getElementById('lote').value = '';
+                document.getElementById('cantidad').value = '';
+                document.getElementById('fechaCaducidad').value = '';
+                document.getElementById('ubicacionLote').value = '';
+                renderizarLotes(producto.lotes);
+            }
+        };
+        document.getElementById('finalizarProductoBtn').onclick = () => { tg.showConfirm('¿Terminaste con este producto?', (confirmed) => { if (confirmed) resetearApp(); }); };
+
+        // Ventas
+        document.getElementById('scanVentaBtn').onclick = startVentaScanner;
+        document.getElementById('cancelVentaScanner').onclick = stopVentaScanner;
+        document.getElementById('cancelarSeleccionLote').onclick = () => { document.getElementById('seleccionLoteContainer').classList.add('hidden'); ventaProductoActual = null; };
+        document.getElementById('confirmarAgregarVentaBtn').onclick = agregarAlCarrito;
+        document.getElementById('cancelarAgregarVentaBtn').onclick = cancelarAgregarVenta;
+        document.getElementById('finalizarVentaBtn').onclick = finalizarVenta;
+        document.getElementById('limpiarCarritoBtn').onclick = () => {
+            carrito.forEach(item => {
+                const producto = productosDB.find(p => p.id === item.productId);
+                if (producto) {
+                    const lote = producto.lotes.find(l => l.lote === item.batchNumber);
+                    if (lote) lote.cantidad += item.quantity;
+                }
+            });
+            carrito = [];
+            renderizarCarrito();
+            guardarDatos();
+            tg.showAlert('🛒 Carrito limpiado');
+        };
+
+        // Ruta
+        document.getElementById('addProductoRutaBtn').onclick = () => { document.getElementById('productoRutaForm').classList.toggle('hidden'); actualizarSelectProductos(); };
+        document.getElementById('cancelarRutaFormBtn').onclick = () => {
+            document.getElementById('productoRutaForm').classList.add('hidden');
+            document.getElementById('rutaProductoSelect').value = '';
+            document.getElementById('rutaLote').value = '';
+            document.getElementById('rutaCantidad').value = '';
+        };
+        document.getElementById('guardarRutaProductoBtn').onclick = () => {
+            const selected = document.getElementById('rutaProductoSelect').value;
+            const cantidad = parseFloat(document.getElementById('rutaCantidad').value);
+            if (!selected || !cantidad) { tg.showAlert('❌ Complete todos los campos'); return; }
+            const [productId, loteNum] = selected.split('|');
+            const producto = productosDB.find(p => p.id == productId);
+            if (producto) {
+                const lote = producto.lotes.find(l => l.lote === loteNum);
+                if (lote && lote.cantidad >= cantidad) {
+                    lote.cantidad -= cantidad;
+                    inventarioRuta.push({ id: Date.now(), productName: producto.nombre, batchNumber: loteNum, quantity: cantidad, date: new Date().toLocaleDateString() });
+                    guardarDatos();
+                    renderizarRutaInventario();
+                    document.getElementById('productoRutaForm').classList.add('hidden');
+                    document.getElementById('rutaProductoSelect').value = '';
+                    document.getElementById('rutaLote').value = '';
+                    document.getElementById('rutaCantidad').value = '';
+                    tg.showAlert('✅ Producto agregado a ruta');
+                } else { tg.showAlert('❌ Cantidad insuficiente'); }
+            }
+        };
+        document.getElementById('exportarRutaJSONBtn').onclick = () => {
+            navigator.clipboard.writeText(JSON.stringify({ storeName: nombreComercio, date: new Date().toISOString(), products: inventarioRuta }, null, 2));
+            tg.showAlert('📋 Ruta exportada a JSON');
+        };
+
+        // Navegación tabs
+        document.getElementById('tabInventario').onclick = () => {
+            document.querySelectorAll('[id^="tab"]').forEach(t => t.className = 'tab-inactive py-2 rounded-lg font-semibold text-xs');
+            document.getElementById('tabInventario').className = 'tab-active py-2 rounded-lg font-semibold text-xs';
+            document.getElementById('panelInventario').classList.remove('hidden');
+            document.getElementById('panelVentas').classList.add('hidden');
+            document.getElementById('panelRuta').classList.add('hidden');
+            document.getElementById('panelReportes').classList.add('hidden');
+            document.getElementById('mensajeInicial').classList.remove('hidden');
+        };
+        document.getElementById('tabVentas').onclick = () => {
+            document.querySelectorAll('[id^="tab"]').forEach(t => t.className = 'tab-inactive py-2 rounded-lg font-semibold text-xs');
+            document.getElementById('tabVentas').className = 'tab-active py-2 rounded-lg font-semibold text-xs';
+            document.getElementById('panelInventario').classList.add('hidden');
+            document.getElementById('panelVentas').classList.remove('hidden');
+            document.getElementById('panelRuta').classList.add('hidden');
+            document.getElementById('panelReportes').classList.add('hidden');
+            document.getElementById('mensajeInicial').classList.add('hidden');
+            cancelarAgregarVenta();
+        };
+        document.getElementById('tabRuta').onclick = () => {
+            document.querySelectorAll('[id^="tab"]').forEach(t => t.className = 'tab-inactive py-2 rounded-lg font-semibold text-xs');
+            document.getElementById('tabRuta').className = 'tab-active py-2 rounded-lg font-semibold text-xs';
+            document.getElementById('panelInventario').classList.add('hidden');
+            document.getElementById('panelVentas').classList.add('hidden');
+            document.getElementById('panelRuta').classList.remove('hidden');
+            document.getElementById('panelReportes').classList.add('hidden');
+            document.getElementById('mensajeInicial').classList.add('hidden');
+            renderizarRutaInventario();
+        };
+        document.getElementById('tabReportes').onclick = () => {
+            document.querySelectorAll('[id^="tab"]').forEach(t => t.className = 'tab-inactive py-2 rounded-lg font-semibold text-xs');
+            document.getElementById('tabReportes').className = 'tab-active py-2 rounded-lg font-semibold text-xs';
+            document.getElementById('panelInventario').classList.add('hidden');
+            document.getElementById('panelVentas').classList.add('hidden');
+            document.getElementById('panelRuta').classList.add('hidden');
+            document.getElementById('panelReportes').classList.remove('hidden');
+            document.getElementById('mensajeInicial').classList.add('hidden');
+            renderizarReportes();
+        };
+
+        // Reportes
+        document.getElementById('filter7dias').onclick = () => { filtroActual = 7; renderizarReportes(); };
+        document.getElementById('filter15dias').onclick = () => { filtroActual = 15; renderizarReportes(); };
+        document.getElementById('filter30dias').onclick = () => { filtroActual = 30; renderizarReportes(); };
+        document.getElementById('filterTodos').onclick = () => { filtroActual = 0; renderizarReportes(); };
+        document.getElementById('exportarReporteBtn').onclick = () => {
+            let texto = `REPORTE DE PRODUCTOS PRÓXIMOS A VENCER\nTIENDA: ${nombreComercio}\n================================\n\n`;
+            const productos = filtroActual === 0 ? obtenerProductosProximosAVencer(999) : obtenerProductosProximosAVencer(filtroActual);
+            for (const p of productos) { texto += `📦 ${p.productName}\n   Lote: ${p.batchNumber}\n   Cantidad: ${p.quantity}\n   Caduca: ${p.expiryDate} (${p.daysRemaining} días)\n   Ubicación: ${p.location}\n\n`; }
+            navigator.clipboard.writeText(texto);
+            tg.showAlert("📋 Reporte TXT copiado");
+        };
+        document.getElementById('exportarJSONBtn').onclick = () => {
+            const productos = filtroActual === 0 ? obtenerProductosProximosAVencer(999) : obtenerProductosProximosAVencer(filtroActual);
+            navigator.clipboard.writeText(JSON.stringify({ storeName: nombreComercio, generatedAt: new Date().toISOString(), filterDays: filtroActual === 0 ? 'all' : filtroActual, expiringProducts: productos }, null, 2));
+            tg.showAlert("📋 JSON copiado");
+        };
+
+        document.getElementById('fechaRuta').valueAsDate = new Date();
+        cargarDatos();
     </script>
 </body>
 

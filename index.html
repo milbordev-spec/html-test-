@@ -146,9 +146,8 @@
             </div>
 
             <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfonos (Máx 3, separados por
-                    coma)</label>
-                <input type="text" id="telefono" placeholder="6441112233, 6445556677"
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfonos (Máx 3, por coma)</label>
+                <input type="text" id="telefono" placeholder="6441112233"
                     class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-lg font-bold">
             </div>
 
@@ -223,9 +222,6 @@
                 tabForm.classList.remove('tab-active-wa', 'tab-active-tg');
                 tabForm.classList.add(isWa ? 'tab-active-wa' : 'tab-active-tg');
             }
-            const fAll = document.getElementById('f-all');
-            fAll.classList.remove('active-wa', 'active-tg');
-            fAll.classList.add(isWa ? 'active-wa' : 'active-tg');
         }
 
         function switchTab(view) {
@@ -280,13 +276,17 @@
             btnMore.classList.toggle('hidden', filtrados.length <= itemsAMostrar);
         }
 
+        function cargarMas() {
+            itemsAMostrar += 5;
+            renderList();
+        }
+
         function guardarRegistro() {
             const telInput = document.getElementById('telefono').value.trim();
             const msg = document.getElementById('mensaje').value.trim();
             const fecStr = document.getElementById('fecha').value;
             const editId = document.getElementById('edit-id').value;
 
-            // Procesar lista de teléfonos
             const tels = [...new Set(telInput.split(',').map(t => t.trim()).filter(t => t !== ""))];
 
             if (tels.length === 0) return tg.showAlert("Ingresa al menos un número.");
@@ -299,40 +299,31 @@
             const hora = fechaNueva.getHours();
             const soloFecha = fechaNueva.toISOString().split('T')[0];
 
-            // REGLA: No horarios en el pasado
-            if (fechaNueva < ahora) return tg.showAlert("⚠️ No puedes viajar al pasado. Elige una hora futura.");
-
-            // REGLA: Horario restringido (07:00 AM - 09:00 PM)
+            if (fechaNueva < ahora) return tg.showAlert("⚠️ No puedes programar en el pasado.");
             if (hora < 7 || hora >= 21) return tg.showAlert("⚠️ Solo se permite de 07:00 a 21:00 hrs.");
 
-            // REGLA: Máximo 5 recordatorios totales por día para el usuario
-            const conteoGlobalHoy = mensajes.filter(m => {
-                if (editId && m.id == editId) return false;
-                return m.fec.startsWith(soloFecha);
-            }).length;
-            if (conteoGlobalHoy >= 5) return tg.showAlert("⚠️ Límite de usuario: Solo puedes agendar 5 recordatorios por día.");
-
-            // REGLA: 1 hora de diferencia por CADA número individual
+            // REGLA: Máximo 5 por NÚMERO al día
             for (let t of tels) {
+                const conteoDia = mensajes.filter(m => m.tel.includes(t) && m.fec.startsWith(soloFecha) && m.id != editId).length;
+                if (conteoDia >= 5) return tg.showAlert(`⚠️ El número ${t} ya alcanzó el límite de 5 mensajes hoy.`);
+
+                // REGLA: 1 hora de diferencia por NÚMERO
                 const colision = mensajes.some(m => {
-                    if (editId && m.id == editId) return false;
-                    const m_tels = m.tel.split(', ');
-                    if (m_tels.includes(t)) {
-                        const diff = Math.abs(new Date(m.fec) - fechaNueva) / 1000 / 60;
-                        return diff < 60;
+                    if (m.id == editId) return false;
+                    if (m.tel.includes(t)) {
+                        const diffMinutos = Math.abs(new Date(m.fec) - fechaNueva) / (1000 * 60);
+                        return diffMinutos < 60;
                     }
                     return false;
                 });
-                if (colision) return tg.showAlert(`⚠️ El número ${t} ya tiene un mensaje programado en este rango (mínimo 1 hora de diferencia).`);
+                if (colision) return tg.showAlert(`⚠️ El número ${t} ya tiene un mensaje programado en un rango menor a 1 hora.`);
             }
 
-            // Guardado final
-            const telString = tels.join(', ');
             if (editId) {
                 const idx = mensajes.findIndex(m => m.id == editId);
-                mensajes[idx] = { id: editId, tel: telString, msg, fec: fecStr, canal };
+                mensajes[idx] = { id: editId, tel: tels.join(', '), msg, fec: fecStr, canal };
             } else {
-                mensajes.push({ id: Date.now(), tel: telString, msg, fec: fecStr, canal });
+                mensajes.push({ id: Date.now(), tel: tels.join(', '), msg, fec: fecStr, canal });
             }
 
             localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
@@ -371,14 +362,8 @@
             document.getElementById('char-count').innerText = "0 / 500";
             document.getElementById('btnMain').innerText = "Agendar Recordatorio";
 
-            // Default a una hora válida en el futuro hoy o mañana
             let d = new Date();
-            d.setMinutes(d.getMinutes() + 30); // +30 min para no estar "en el pasado" al cargar
-            if (d.getHours() < 7) d.setHours(7, 0, 0, 0);
-            if (d.getHours() >= 21) {
-                d.setDate(d.getDate() + 1);
-                d.setHours(9, 0, 0, 0);
-            }
+            d.setMinutes(d.getMinutes() + 15);
             document.getElementById('fecha').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         }
 

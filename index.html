@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Control Caducidades</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        .btn-scanner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors">
+    <div class="max-w-md mx-auto p-4 min-h-screen pb-24">
+
+        <!-- Header -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 mb-4 fade-in">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl">
+                    📦</div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Control Caducidades</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Gestión de lotes por código de barras</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Escáner -->
+        <button id="scanBtn"
+            class="btn-scanner w-full py-4 rounded-2xl text-white font-bold text-lg shadow-lg mb-4 transition-transform active:scale-95">
+            📷 ESCANEAR CÓDIGO DE BARRAS
+        </button>
+
+        <input type="text" id="codigoManual" placeholder="✏️ O escribe el código manualmente"
+            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl mb-4 text-center text-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+
+        <!-- Contenido después de escanear -->
+        <div id="contenidoDespuesEscaneo" class="hidden">
+
+            <!-- Info del código -->
+            <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded-lg mb-4">
+                <p class="text-xs text-gray-600 dark:text-gray-400">Código escaneado:</p>
+                <p class="font-mono font-bold text-blue-700 dark:text-blue-300" id="codigoMostrado"></p>
+            </div>
+
+            <!-- Producto NUEVO -->
+            <div id="formNuevoProducto" class="hidden bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg mb-4 fade-in">
+                <h2 class="font-bold text-lg text-gray-800 dark:text-white mb-3">🆕 Producto nuevo</h2>
+                <div class="space-y-3">
+                    <input type="text" id="nombreProducto" placeholder="Nombre del producto *"
+                        class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <input type="text" id="marcaProducto" placeholder="Marca"
+                        class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <button id="guardarNuevoProductoBtn"
+                        class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-semibold">
+                        ✅ Guardar producto
+                    </button>
+                </div>
+            </div>
+
+            <!-- Producto EXISTENTE + Gestión de lotes -->
+            <div id="formLote" class="hidden bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg mb-4 fade-in">
+                <div class="mb-4 pb-3 border-b-2 border-gray-200 dark:border-gray-700">
+                    <h2 class="font-bold text-xl text-gray-800 dark:text-white" id="productoNombre"></h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400" id="productoMarca"></p>
+                </div>
+
+                <!-- Lista de lotes -->
+                <div id="lotesContainer">
+                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">📋 Lotes registrados:</h3>
+                    <div id="listaDeLotes" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                </div>
+
+                <!-- Formulario agregar lote -->
+                <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">➕ Agregar nuevo lote</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="lote" placeholder="Número de lote *"
+                            class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
+                            class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <input type="date" id="fechaCaducidad"
+                            class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <button id="guardarLoteBtn"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold">
+                            💾 Guardar lote
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje inicial -->
+        <div id="mensajeInicial" class="text-center py-12">
+            <div class="text-6xl mb-4">🔍</div>
+            <p class="text-gray-500 dark:text-gray-400">Escanea un código de barras<br>para comenzar</p>
+        </div>
+
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        if (tg.colorScheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+
+        let currentProductoId = null;
+        let currentCodigo = null;
+
+        // Escáner
+        const scannerInput = document.createElement('input');
+        scannerInput.type = 'file';
+        scannerInput.accept = 'image/*';
+        scannerInput.capture = 'environment';
+        scannerInput.style.display = 'none';
+        document.body.appendChild(scannerInput);
+
+        document.getElementById('scanBtn').onclick = () => scannerInput.click();
+
+        scannerInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if ('BarcodeDetector' in window) {
+                try {
+                    const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'code_128'] });
+                    const bitmap = await createImageBitmap(file);
+                    const barcodes = await detector.detect(bitmap);
+                    if (barcodes.length > 0) {
+                        document.getElementById('codigoManual').value = barcodes[0].rawValue;
+                        await procesarCodigo(barcodes[0].rawValue);
+                    } else {
+                        tg.showAlert('No se detectó código de barras');
+                    }
+                } catch (error) {
+                    tg.showAlert('Error al leer el código');
+                }
+            }
+            scannerInput.value = '';
+        };
+
+        document.getElementById('codigoManual').onchange = async (e) => {
+            if (e.target.value) await procesarCodigo(e.target.value);
+        };
+
+        async function procesarCodigo(codigo) {
+            currentCodigo = codigo;
+            document.getElementById('codigoMostrado').textContent = codigo;
+            document.getElementById('contenidoDespuesEscaneo').classList.remove('hidden');
+            document.getElementById('mensajeInicial').classList.add('hidden');
+
+            try {
+                const response = await fetch(`/api/check_product?codigo=${encodeURIComponent(codigo)}`);
+                const data = await response.json();
+
+                if (data.exists) {
+                    currentProductoId = data.producto_id;
+                    document.getElementById('productoNombre').textContent = data.nombre;
+                    document.getElementById('productoMarca').textContent = data.marca ? `Marca: ${data.marca}` : '';
+                    document.getElementById('formNuevoProducto').classList.add('hidden');
+                    document.getElementById('formLote').classList.remove('hidden');
+
+                    // Renderizar lotes
+                    renderizarLotes(data.lotes);
+                } else {
+                    currentProductoId = null;
+                    document.getElementById('formNuevoProducto').classList.remove('hidden');
+                    document.getElementById('formLote').classList.add('hidden');
+                }
+            } catch (error) {
+                tg.showAlert('Error de conexión');
+            }
+        }
+
+        function renderizarLotes(lotes) {
+            const container = document.getElementById('listaDeLotes');
+            if (!lotes || lotes.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No hay lotes registrados</p>';
+                return;
+            }
+
+            container.innerHTML = lotes.map(lote => {
+                const fecha = new Date(lote.fecha_caducidad);
+                const hoy = new Date();
+                const diffDays = Math.ceil((fecha - hoy) / (1000 * 60 * 60 * 24));
+                let colorClass = 'text-green-600 dark:text-green-400';
+                if (diffDays < 0) colorClass = 'text-red-600 dark:text-red-400';
+                else if (diffDays < 30) colorClass = 'text-orange-500 dark:text-orange-400';
+
+                return `
+                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600" data-lote-id="${lote.id}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-mono font-bold text-gray-800 dark:text-white">🏷️ ${escapeHtml(lote.lote)}</span>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">ID: ${lote.id}</span>
+                                </div>
+                                <div class="flex justify-between items-center mt-2">
+                                    <div>
+                                        <span class="text-sm text-gray-600 dark:text-gray-300">📊 Cantidad:</span>
+                                        <span class="font-semibold ml-1" id="cantidad-${lote.id}">${lote.cantidad}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm text-gray-600 dark:text-gray-300">📅 Caduca:</span>
+                                        <span class="font-semibold ml-1 ${colorClass}">${lote.fecha_caducidad}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 ml-2">
+                                <button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" 
+                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg text-sm transition-colors">
+                                    ✏️
+                                </button>
+                                <button onclick="eliminarLote(${lote.id})" 
+                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm transition-colors">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.eliminarLote = async (loteId) => {
+            const confirmacion = await tg.showPopup({
+                title: '⚠️ Eliminar lote',
+                message: '¿Seguro que quieres eliminar este lote?',
+                buttons: [
+                    { type: 'cancel', text: 'Cancelar' },
+                    { type: 'destructive', text: 'Eliminar' }
+                ]
+            });
+
+            if (confirmacion === 'destructive') {
+                try {
+                    const response = await fetch('/api/delete_lote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lote_id: loteId })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        tg.showAlert('✅ Lote eliminado correctamente');
+                        await procesarCodigo(currentCodigo);
+                    } else {
+                        tg.showAlert('❌ Error al eliminar lote');
+                    }
+                } catch (error) {
+                    tg.showAlert('Error de conexión');
+                }
+            }
+        };
+
+        window.editarCantidad = async (loteId, cantidadActual) => {
+            const nuevaCantidad = await tg.showPopup({
+                title: '✏️ Editar cantidad',
+                message: `Cantidad actual: ${cantidadActual}`,
+                buttons: [
+                    { type: 'cancel', text: 'Cancelar' },
+                    { type: 'ok', text: 'Guardar' }
+                ]
+            });
+
+            if (nuevaCantidad === 'ok') {
+                // Usar prompt nativo de Telegram
+                tg.showAlert('Función: Ingresa la nueva cantidad en el siguiente paso');
+                // Para simplificar, usamos prompt (en producción usar un input custom)
+                const cantidad = prompt('Nueva cantidad:', cantidadActual);
+                if (cantidad && !isNaN(parseFloat(cantidad))) {
+                    try {
+                        await fetch('/api/update_cantidad', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ lote_id: loteId, cantidad: parseFloat(cantidad) })
+                        });
+                        tg.showAlert('✅ Cantidad actualizada');
+                        await procesarCodigo(currentCodigo);
+                    } catch (error) {
+                        tg.showAlert('Error al actualizar');
+                    }
+                }
+            }
+        };
+
+        document.getElementById('guardarNuevoProductoBtn').onclick = async () => {
+            const nombre = document.getElementById('nombreProducto').value.trim();
+            const marca = document.getElementById('marcaProducto').value.trim();
+
+            if (!nombre) {
+                tg.showAlert('El nombre del producto es obligatorio');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/save_product', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        codigo: currentCodigo,
+                        nombre: nombre,
+                        marca: marca
+                    })
+                });
+                const data = await response.json();
+                currentProductoId = data.producto_id;
+                tg.showAlert('✅ Producto guardado');
+
+                document.getElementById('formNuevoProducto').classList.add('hidden');
+                document.getElementById('formLote').classList.remove('hidden');
+                document.getElementById('productoNombre').textContent = nombre;
+                document.getElementById('productoMarca').textContent = marca ? `Marca: ${marca}` : '';
+                document.getElementById('listaDeLotes').innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No hay lotes registrados</p>';
+            } catch (error) {
+                tg.showAlert('Error al guardar producto');
+            }
+        };
+
+        document.getElementById('guardarLoteBtn').onclick = async () => {
+            const lote = document.getElementById('lote').value.trim();
+            const cantidad = parseFloat(document.getElementById('cantidad').value);
+            const fecha = document.getElementById('fechaCaducidad').value;
+
+            if (!lote || !cantidad || !fecha) {
+                tg.showAlert('Lote, cantidad y fecha son obligatorios');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/save_lote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        producto_id: currentProductoId,
+                        lote: lote,
+                        cantidad: cantidad,
+                        fecha_caducidad: fecha
+                    })
+                });
+
+                if (response.ok) {
+                    tg.showAlert('✅ Lote guardado correctamente');
+                    document.getElementById('lote').value = '';
+                    document.getElementById('cantidad').value = '';
+                    document.getElementById('fechaCaducidad').value = '';
+                    await procesarCodigo(currentCodigo);
+                } else {
+                    const error = await response.json();
+                    tg.showAlert(error.error || 'Error al guardar lote');
+                }
+            } catch (error) {
+                tg.showAlert('Error de conexión');
+            }
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+    </script>
+</body>
+
+</html>

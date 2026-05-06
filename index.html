@@ -30,6 +30,10 @@
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
 
+        .btn-json {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }
@@ -91,13 +95,11 @@
             transform: scale(1.01);
         }
 
-        /* Efecto glass para el header */
         .glass-header {
             background: rgba(31, 41, 55, 0.8);
             backdrop-filter: blur(10px);
         }
 
-        /* Tarjetas de lotes más elegantes */
         .lote-card {
             transition: all 0.2s ease;
         }
@@ -111,7 +113,7 @@
 <body class="bg-black min-h-screen">
     <div class="max-w-md mx-auto px-4 py-3 pb-24">
 
-        <!-- Header con vidrio y nombre del comercio -->
+        <!-- Header -->
         <div class="glass-header rounded-2xl shadow-xl p-4 mb-4 fade-in border border-gray-800 sticky top-0 z-10">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -124,7 +126,6 @@
                         <p class="text-[10px] text-gray-400">Control de caducidades y ubicaciones</p>
                     </div>
                 </div>
-                <!-- Nombre del comercio/tienda -->
                 <button id="editarComercioBtn"
                     class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-full transition-all flex items-center gap-1">
                     <span>🏪</span>
@@ -142,10 +143,8 @@
                 vencer</button>
         </div>
 
-        <!-- ==================== PESTAÑA INVENTARIO ==================== -->
+        <!-- PESTAÑA INVENTARIO -->
         <div id="panelInventario" class="fade-in">
-
-            <!-- Escáner -->
             <div id="scannerContainer" class="hidden mb-4">
                 <div class="bg-gray-900 rounded-xl p-3 border border-gray-800">
                     <div id="reader" style="width:100%;"></div>
@@ -166,7 +165,6 @@
             </div>
 
             <div id="contenidoDespuesEscaneo" class="hidden">
-                <!-- Info del código -->
                 <div class="bg-gray-900 border-l-4 border-blue-500 p-3 rounded-xl mb-4 fade-in">
                     <div class="flex items-center gap-2">
                         <span class="text-xl">🔖</span>
@@ -237,7 +235,7 @@
             </div>
         </div>
 
-        <!-- ==================== PESTAÑA PRÓXIMOS A VENCER ==================== -->
+        <!-- PESTAÑA PRÓXIMOS A VENCER -->
         <div id="panelReportes" class="hidden fade-in">
             <div class="bg-gray-900 rounded-xl p-4 shadow-xl border border-gray-800 mb-4">
                 <div class="flex items-center gap-2 mb-3">
@@ -245,7 +243,6 @@
                     <h2 class="font-bold text-lg text-white">Próximos a vencer</h2>
                 </div>
 
-                <!-- Filtros mejorados -->
                 <div class="grid grid-cols-4 gap-1 mb-4">
                     <button id="filter7dias"
                         class="bg-gray-800 hover:bg-blue-600 text-gray-300 text-xs py-2 rounded-lg transition-all">7
@@ -260,14 +257,19 @@
                         class="bg-blue-600 text-white text-xs py-2 rounded-lg transition-all">Todos</button>
                 </div>
 
-                <!-- Lista -->
                 <div id="listaProximosVencer" class="space-y-2 max-h-96 overflow-y-auto"></div>
 
-                <!-- Exportar -->
-                <button id="exportarReporteBtn"
-                    class="btn-reporte w-full mt-4 text-white py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all">
-                    📎 Exportar reporte
-                </button>
+                <!-- Botones de exportación: TXT y JSON -->
+                <div class="flex gap-2 mt-4">
+                    <button id="exportarReporteBtn"
+                        class="btn-reporte flex-1 text-white py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all">
+                        📎 Exportar TXT
+                    </button>
+                    <button id="exportarJSONBtn"
+                        class="btn-json flex-1 text-white py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all">
+                        📋 Exportar JSON
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -284,7 +286,6 @@
     </div>
 
     <script>
-        // INICIALIZACIÓN
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
@@ -296,11 +297,9 @@
         let html5QrCode = null;
         let filtroActual = 30;
 
-        // Nombre del comercio
         let nombreComercio = localStorage.getItem('nombreComercio') || 'Mi Tienda';
         document.getElementById('nombreComercio').textContent = nombreComercio;
 
-        // Editar nombre del comercio
         document.getElementById('editarComercioBtn').onclick = () => {
             const nuevo = prompt('Nombre de tu tienda/comercio:', nombreComercio);
             if (nuevo && nuevo.trim()) {
@@ -311,7 +310,6 @@
             }
         };
 
-        // DATOS
         let productosDB = [
             {
                 id: 1, codigo: "7501031321307", nombre: "Leche Entera Lala", marca: "Lala", ubicacion: "Refrigerador 1",
@@ -421,7 +419,6 @@
             currentCodigo = null;
         }
 
-        // Reportes
         function obtenerProductosProximosAVencer(dias) {
             const hoy = new Date();
             const limite = new Date();
@@ -432,18 +429,50 @@
                     const fechaCad = new Date(lote.fecha_caducidad);
                     if (fechaCad <= limite && fechaCad >= hoy) {
                         resultados.push({
-                            producto: producto.nombre,
-                            marca: producto.marca,
-                            lote: lote.lote,
-                            cantidad: lote.cantidad,
-                            caducidad: lote.fecha_caducidad,
-                            ubicacion: lote.ubicacion || producto.ubicacion || 'No especificada',
-                            diasRestantes: Math.ceil((fechaCad - hoy) / (1000 * 60 * 60 * 24))
+                            productName: producto.nombre,
+                            brand: producto.marca,
+                            batchNumber: lote.lote,
+                            quantity: lote.cantidad,
+                            expiryDate: lote.fecha_caducidad,
+                            location: lote.ubicacion || producto.ubicacion || 'Not specified',
+                            daysRemaining: Math.ceil((fechaCad - hoy) / (1000 * 60 * 60 * 24))
                         });
                     }
                 }
             }
-            return resultados.sort((a, b) => a.diasRestantes - b.diasRestantes);
+            return resultados.sort((a, b) => a.daysRemaining - b.daysRemaining);
+        }
+
+        function obtenerReporteCompletoJSON() {
+            const reporte = {
+                storeName: nombreComercio,
+                generatedAt: new Date().toISOString(),
+                products: productosDB.map(producto => ({
+                    productId: producto.id,
+                    barcode: producto.codigo,
+                    productName: producto.nombre,
+                    brand: producto.marca || '',
+                    storeLocation: producto.ubicacion || '',
+                    batches: producto.lotes.map(lote => ({
+                        batchId: lote.id,
+                        batchNumber: lote.lote,
+                        quantity: lote.cantidad,
+                        expiryDate: lote.fecha_caducidad,
+                        specificLocation: lote.ubicacion || ''
+                    }))
+                }))
+            };
+            return reporte;
+        }
+
+        function obtenerProductosProximosVencerJSON() {
+            const productos = filtroActual === 0 ? obtenerProductosProximosAVencer(999) : obtenerProductosProximosAVencer(filtroActual);
+            return {
+                storeName: nombreComercio,
+                generatedAt: new Date().toISOString(),
+                filterDays: filtroActual === 0 ? 'all' : filtroActual,
+                expiringProducts: productos
+            };
         }
 
         function renderizarReportes() {
@@ -462,7 +491,16 @@
                 }
                 productosFiltrados = productosFiltrados.sort((a, b) => a.diasRestantes - b.diasRestantes);
             } else {
-                productosFiltrados = obtenerProductosProximosAVencer(filtroActual);
+                const raw = obtenerProductosProximosAVencer(filtroActual);
+                productosFiltrados = raw.map(p => ({
+                    producto: p.productName,
+                    marca: p.brand,
+                    lote: p.batchNumber,
+                    cantidad: p.quantity,
+                    caducidad: p.expiryDate,
+                    ubicacion: p.location,
+                    diasRestantes: p.daysRemaining
+                }));
             }
 
             const container = document.getElementById('listaProximosVencer');
@@ -494,7 +532,6 @@
             }).join('');
         }
 
-        // Escáner
         async function startScanner() {
             document.getElementById('scannerContainer').classList.remove('hidden');
             html5QrCode = new Html5Qrcode("reader");
@@ -536,7 +573,6 @@
             }
         }
 
-        // Eventos
         document.getElementById('scanBtn').onclick = startScanner;
         document.getElementById('cancelScanner').onclick = stopScanner;
         document.getElementById('codigoManual').onchange = (e) => { if (e.target.value) procesarCodigo(e.target.value); };
@@ -583,7 +619,6 @@
             tg.showConfirm('¿Terminaste con este producto?', (confirmed) => { if (confirmed) resetearApp(); });
         };
 
-        // Tabs
         document.getElementById('tabInventario').onclick = () => {
             document.getElementById('tabInventario').className = 'tab-active flex-1 py-2.5 rounded-xl font-semibold text-sm';
             document.getElementById('tabReportes').className = 'tab-inactive flex-1 py-2.5 rounded-xl font-semibold text-sm';
@@ -598,30 +633,36 @@
             renderizarReportes();
         };
 
-        // Filtros
         document.getElementById('filter7dias').onclick = () => { filtroActual = 7; renderizarReportes(); };
         document.getElementById('filter15dias').onclick = () => { filtroActual = 15; renderizarReportes(); };
         document.getElementById('filter30dias').onclick = () => { filtroActual = 30; renderizarReportes(); };
         document.getElementById('filterTodos').onclick = () => { filtroActual = 0; renderizarReportes(); };
 
-        // Exportar
+        // Exportar TXT
         document.getElementById('exportarReporteBtn').onclick = () => {
             let texto = `REPORTE DE PRODUCTOS PRÓXIMOS A VENCER\n`;
             texto += `TIENDA: ${nombreComercio}\n`;
             texto += `================================\n\n`;
             const productos = filtroActual === 0 ? obtenerProductosProximosAVencer(999) : obtenerProductosProximosAVencer(filtroActual);
             for (const p of productos) {
-                texto += `📦 ${p.producto}\n`;
-                texto += `   Lote: ${p.lote}\n`;
-                texto += `   Cantidad: ${p.cantidad}\n`;
-                texto += `   Caduca: ${p.caducidad} (${p.diasRestantes} días)\n`;
-                texto += `   Ubicación: ${p.ubicacion}\n\n`;
+                texto += `📦 ${p.productName}\n`;
+                texto += `   Lote: ${p.batchNumber}\n`;
+                texto += `   Cantidad: ${p.quantity}\n`;
+                texto += `   Caduca: ${p.expiryDate} (${p.daysRemaining} días)\n`;
+                texto += `   Ubicación: ${p.location}\n\n`;
             }
             navigator.clipboard.writeText(texto);
-            tg.showAlert("📋 Reporte copiado al portapapeles");
+            tg.showAlert("📋 Reporte TXT copiado al portapapeles");
         };
 
-        // Funciones globales
+        // Exportar JSON completo
+        document.getElementById('exportarJSONBtn').onclick = () => {
+            const jsonData = obtenerProductosProximosVencerJSON();
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            navigator.clipboard.writeText(jsonString);
+            tg.showAlert("📋 Reporte JSON copiado al portapapeles");
+        };
+
         window.editarCantidad = (loteId, cantidadActual) => {
             const nueva = prompt('Nueva cantidad:', cantidadActual);
             if (nueva && !isNaN(parseFloat(nueva))) {

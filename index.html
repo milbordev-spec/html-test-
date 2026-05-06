@@ -4,14 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Control Caducidades</title>
+    <title>Vendedor Pro - Control de Caducidades</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         .btn-scanner {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            transition: all 0.2s ease;
         }
 
         .btn-scanner:active {
@@ -22,14 +26,18 @@
             background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
         }
 
+        .btn-reporte {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
         .fade-in {
-            animation: fadeIn 0.3s ease-in;
+            animation: fadeIn 0.3s ease-out;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(8px);
             }
 
             to {
@@ -49,134 +57,228 @@
         }
 
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #1e293b;
-            border-radius: 10px;
+            background: #1f2937;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #475569;
+            background: #4b5563;
             border-radius: 10px;
         }
 
-        .counter-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        .tab-active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .tab-inactive {
+            background: #1f2937;
+            color: #9ca3af;
+        }
+
+        input,
+        select,
+        textarea {
+            transition: all 0.2s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            transform: scale(1.01);
+        }
+
+        /* Efecto glass para el header */
+        .glass-header {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Tarjetas de lotes más elegantes */
+        .lote-card {
+            transition: all 0.2s ease;
+        }
+
+        .lote-card:active {
+            transform: scale(0.99);
         }
     </style>
 </head>
 
-<body class="bg-gray-900 min-h-screen">
-    <div class="max-w-md mx-auto p-4 pb-24">
+<body class="bg-black min-h-screen">
+    <div class="max-w-md mx-auto px-4 py-3 pb-24">
 
-        <div class="bg-gray-800/80 rounded-2xl shadow-xl p-5 mb-4 fade-in border border-gray-700">
-            <div class="flex items-center gap-3">
-                <div
-                    class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl shadow-lg">
-                    📦</div>
-                <div>
-                    <h1 class="text-xl font-bold text-white">Control Caducidades</h1>
-                    <p class="text-xs text-gray-400">Escanea código de barras (EAN-13)</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="contadorProductos" class="counter-card rounded-xl p-3 mb-4 border border-gray-700 hidden">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2"><span class="text-2xl">📊</span><span
-                        class="text-gray-300 font-semibold">Productos registrados:</span></div>
-                <span id="totalProductos" class="text-2xl font-bold text-blue-400">0</span>
-            </div>
-        </div>
-
-        <div id="scannerContainer" class="hidden mb-4">
-            <div class="bg-gray-800 rounded-xl p-3 border border-gray-700">
-                <div id="reader" style="width:100%;"></div>
-                <button id="cancelScanner" class="w-full mt-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg">❌
-                    Cancelar escaneo</button>
-            </div>
-        </div>
-
-        <button id="scanBtn"
-            class="btn-scanner w-full py-5 rounded-2xl text-white font-bold text-lg shadow-xl mb-4 flex items-center justify-center gap-3 transition-transform active:scale-95">
-            <span class="text-2xl">📷</span> ESCANEAR CÓDIGO DE BARRAS
-        </button>
-
-        <div class="relative mb-4">
-            <input type="text" id="codigoManual" placeholder="✏️ O escribe el código manualmente"
-                class="w-full p-4 border-2 border-gray-700 rounded-xl text-center text-lg bg-gray-800 text-white focus:outline-none focus:border-blue-500 transition-all">
-        </div>
-
-        <div id="contenidoDespuesEscaneo" class="hidden">
-            <div class="bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-xl mb-4 fade-in">
+        <!-- Header con vidrio y nombre del comercio -->
+        <div class="glass-header rounded-2xl shadow-xl p-4 mb-4 fade-in border border-gray-800 sticky top-0 z-10">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="text-2xl">🔖</span>
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl shadow-lg">
+                        📦
+                    </div>
                     <div>
-                        <p class="text-xs text-gray-400">Código escaneado</p>
-                        <p class="font-mono font-bold text-blue-300 text-lg" id="codigoMostrado"></p>
+                        <h1 class="text-lg font-bold text-white">Vendedor Pro</h1>
+                        <p class="text-[10px] text-gray-400">Control de caducidades y ubicaciones</p>
                     </div>
                 </div>
+                <!-- Nombre del comercio/tienda -->
+                <button id="editarComercioBtn"
+                    class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-full transition-all flex items-center gap-1">
+                    <span>🏪</span>
+                    <span id="nombreComercio">Mi Tienda</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-4">
+            <button id="tabInventario"
+                class="tab-active flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all">📦 Inventario</button>
+            <button id="tabReportes"
+                class="tab-inactive flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all">⚠️ Por
+                vencer</button>
+        </div>
+
+        <!-- ==================== PESTAÑA INVENTARIO ==================== -->
+        <div id="panelInventario" class="fade-in">
+
+            <!-- Escáner -->
+            <div id="scannerContainer" class="hidden mb-4">
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-800">
+                    <div id="reader" style="width:100%;"></div>
+                    <button id="cancelScanner"
+                        class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg transition-all">❌
+                        Cancelar</button>
+                </div>
             </div>
 
-            <div id="formNuevoProducto"
-                class="hidden bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in border border-gray-700">
-                <div class="text-center mb-4"><span class="text-5xl">🆕</span>
-                    <h2 class="font-bold text-xl text-white mt-2">Producto nuevo</h2>
-                </div>
-                <div class="space-y-3">
-                    <input type="text" id="nombreProducto" placeholder="Nombre del producto *"
-                        class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-green-500">
-                    <input type="text" id="marcaProducto" placeholder="Marca (opcional)"
-                        class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-green-500">
-                    <button id="guardarNuevoProductoBtn"
-                        class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all shadow-md">✅
-                        Guardar producto</button>
-                </div>
+            <button id="scanBtn"
+                class="btn-scanner w-full py-4 rounded-xl text-white font-bold text-base shadow-xl mb-3 flex items-center justify-center gap-2 transition-all active:scale-95">
+                <span class="text-xl">📷</span> ESCANEAR CÓDIGO
+            </button>
+
+            <div class="relative mb-4">
+                <input type="text" id="codigoManual" placeholder="✏️ O escribe el código manualmente"
+                    class="w-full p-3 border border-gray-800 rounded-xl text-center text-base bg-gray-900 text-white focus:outline-none focus:border-blue-500 transition-all">
             </div>
 
-            <div id="formLote" class="hidden bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in border border-gray-700">
-                <div class="text-center mb-4 pb-3 border-b-2 border-gray-700">
-                    <span class="text-4xl">📦</span>
-                    <h2 class="font-bold text-2xl text-white" id="productoNombre"></h2>
-                    <p class="text-sm text-gray-400 mt-1" id="productoMarca"></p>
-                </div>
-
-                <div class="mb-4">
-                    <h3 class="font-semibold text-gray-300 mb-3 flex items-center gap-2"><span>➕</span> Agregar nuevo
-                        lote</h3>
-                    <div class="space-y-3">
-                        <input type="text" id="lote" placeholder="Número de lote *"
-                            class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
-                        <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
-                            class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
-                        <input type="date" id="fechaCaducidad"
-                            class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
-                        <div class="flex gap-3">
-                            <button id="guardarLoteBtn"
-                                class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-xl font-semibold transition-all shadow-md">💾
-                                Guardar lote</button>
-                            <button id="finalizarProductoBtn"
-                                class="btn-finalizar flex-1 text-white py-3 rounded-xl font-semibold transition-all shadow-md flex items-center justify-center gap-2">🏁
-                                Finalizar</button>
+            <div id="contenidoDespuesEscaneo" class="hidden">
+                <!-- Info del código -->
+                <div class="bg-gray-900 border-l-4 border-blue-500 p-3 rounded-xl mb-4 fade-in">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🔖</span>
+                        <div>
+                            <p class="text-[10px] text-gray-500">Código escaneado</p>
+                            <p class="font-mono font-bold text-blue-400 text-sm" id="codigoMostrado"></p>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-t-2 border-gray-700 pt-4">
-                    <h3 class="font-semibold text-gray-300 mb-2 flex items-center gap-2"><span>📋</span> Lotes
-                        registrados (por fecha)</h3>
-                    <div id="listaDeLotes" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                <!-- Producto NUEVO -->
+                <div id="formNuevoProducto"
+                    class="hidden bg-gray-900 rounded-xl p-5 shadow-xl mb-4 fade-in border border-gray-800">
+                    <div class="text-center mb-4">
+                        <span class="text-4xl">🆕</span>
+                        <h2 class="font-bold text-lg text-white mt-1">Producto nuevo</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <input type="text" id="nombreProducto" placeholder="Nombre del producto *"
+                            class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white focus:outline-none focus:border-green-500">
+                        <input type="text" id="marcaProducto" placeholder="Marca"
+                            class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white focus:outline-none focus:border-green-500">
+                        <input type="text" id="ubicacionProducto" placeholder="📍 Ubicación en tienda"
+                            class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white focus:outline-none focus:border-green-500">
+                        <button id="guardarNuevoProductoBtn"
+                            class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-3 rounded-xl font-semibold transition-all">✅
+                            Guardar</button>
+                    </div>
+                </div>
+
+                <!-- Producto EXISTENTE -->
+                <div id="formLote"
+                    class="hidden bg-gray-900 rounded-xl p-5 shadow-xl mb-4 fade-in border border-gray-800">
+                    <div class="text-center mb-4 pb-3 border-b border-gray-800">
+                        <span class="text-3xl">📦</span>
+                        <h2 class="font-bold text-xl text-white" id="productoNombre"></h2>
+                        <p class="text-xs text-gray-500 mt-1" id="productoMarca"></p>
+                        <p class="text-xs text-blue-500 mt-1" id="productoUbicacion"></p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="font-semibold text-gray-300 text-sm mb-3">➕ Agregar lote</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="lote" placeholder="Número de lote *"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white text-sm">
+                            <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white text-sm">
+                            <input type="date" id="fechaCaducidad"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white text-sm">
+                            <input type="text" id="ubicacionLote" placeholder="📍 Ubicación específica"
+                                class="w-full p-3 border border-gray-800 rounded-xl bg-gray-800 text-white text-sm">
+                            <div class="flex gap-2">
+                                <button id="guardarLoteBtn"
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm transition-all">💾
+                                    Guardar</button>
+                                <button id="finalizarProductoBtn"
+                                    class="btn-finalizar flex-1 text-white py-3 rounded-xl font-semibold text-sm transition-all">🏁
+                                    Finalizar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-800 pt-4">
+                        <h3 class="font-semibold text-gray-300 text-sm mb-2">📋 Lotes registrados</h3>
+                        <div id="listaDeLotes" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- ==================== PESTAÑA PRÓXIMOS A VENCER ==================== -->
+        <div id="panelReportes" class="hidden fade-in">
+            <div class="bg-gray-900 rounded-xl p-4 shadow-xl border border-gray-800 mb-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">⚠️</span>
+                    <h2 class="font-bold text-lg text-white">Próximos a vencer</h2>
+                </div>
+
+                <!-- Filtros mejorados -->
+                <div class="grid grid-cols-4 gap-1 mb-4">
+                    <button id="filter7dias"
+                        class="bg-gray-800 hover:bg-blue-600 text-gray-300 text-xs py-2 rounded-lg transition-all">7
+                        días</button>
+                    <button id="filter15dias"
+                        class="bg-gray-800 hover:bg-blue-600 text-gray-300 text-xs py-2 rounded-lg transition-all">15
+                        días</button>
+                    <button id="filter30dias"
+                        class="bg-gray-800 hover:bg-blue-600 text-gray-300 text-xs py-2 rounded-lg transition-all">30
+                        días</button>
+                    <button id="filterTodos"
+                        class="bg-blue-600 text-white text-xs py-2 rounded-lg transition-all">Todos</button>
+                </div>
+
+                <!-- Lista -->
+                <div id="listaProximosVencer" class="space-y-2 max-h-96 overflow-y-auto"></div>
+
+                <!-- Exportar -->
+                <button id="exportarReporteBtn"
+                    class="btn-reporte w-full mt-4 text-white py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all">
+                    📎 Exportar reporte
+                </button>
+            </div>
+        </div>
+
+        <!-- Mensaje inicial -->
         <div id="mensajeInicial" class="text-center py-16 fade-in">
-            <div class="bg-gray-800 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-6"><span
-                    class="text-6xl">🔍</span></div>
-            <p class="text-gray-400 text-lg">Presiona el botón para escanear</p>
-            <p class="text-gray-500 text-sm mt-1">Cámara se abrirá automáticamente</p>
+            <div
+                class="bg-gray-900 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4 border border-gray-800">
+                <span class="text-5xl">🔍</span>
+            </div>
+            <p class="text-gray-400 text-base">Presiona para escanear</p>
+            <p class="text-gray-600 text-xs mt-1">La cámara se abrirá automáticamente</p>
         </div>
 
     </div>
@@ -186,42 +288,55 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
-        tg.setBackgroundColor('#111827');
-        tg.setHeaderColor('#1f2937');
+        tg.setBackgroundColor('#000000');
+        tg.setHeaderColor('#000000');
 
         let currentProductoId = null;
         let currentCodigo = null;
         let html5QrCode = null;
+        let filtroActual = 30;
+
+        // Nombre del comercio
+        let nombreComercio = localStorage.getItem('nombreComercio') || 'Mi Tienda';
+        document.getElementById('nombreComercio').textContent = nombreComercio;
+
+        // Editar nombre del comercio
+        document.getElementById('editarComercioBtn').onclick = () => {
+            const nuevo = prompt('Nombre de tu tienda/comercio:', nombreComercio);
+            if (nuevo && nuevo.trim()) {
+                nombreComercio = nuevo.trim();
+                localStorage.setItem('nombreComercio', nombreComercio);
+                document.getElementById('nombreComercio').textContent = nombreComercio;
+                tg.showAlert(`✅ Tienda: ${nombreComercio}`);
+            }
+        };
 
         // DATOS
         let productosDB = [
             {
-                id: 1, codigo: "7501031321307", nombre: "Leche Entera Lala", marca: "Lala", lotes: [
-                    { id: 101, lote: "L2403A", cantidad: 12, fecha_caducidad: "2025-06-15" },
-                    { id: 102, lote: "L2405B", cantidad: 5, fecha_caducidad: "2025-01-20" }
+                id: 1, codigo: "7501031321307", nombre: "Leche Entera Lala", marca: "Lala", ubicacion: "Refrigerador 1",
+                lotes: [
+                    { id: 101, lote: "L2403A", cantidad: 12, fecha_caducidad: "2025-06-15", ubicacion: "Estante A" },
+                    { id: 102, lote: "L2405B", cantidad: 5, fecha_caducidad: "2025-01-20", ubicacion: "Estante B" }
                 ]
             },
             {
-                id: 2, codigo: "1234567890123", nombre: "Pan Bimbo", marca: "Bimbo", lotes: [
-                    { id: 201, lote: "P2401", cantidad: 8, fecha_caducidad: "2025-02-10" }
+                id: 2, codigo: "1234567890123", nombre: "Pan Bimbo", marca: "Bimbo", ubicacion: "Pasillo 2",
+                lotes: [
+                    { id: 201, lote: "P2401", cantidad: 8, fecha_caducidad: "2025-02-10", ubicacion: "Estante C" }
                 ]
             }
         ];
         let nextProductoId = 3;
         let nextLoteId = 300;
 
-        function actualizarContador() {
-            const total = productosDB.length;
-            document.getElementById('totalProductos').textContent = total;
-            if (total > 0) document.getElementById('contadorProductos').classList.remove('hidden');
-            else document.getElementById('contadorProductos').classList.add('hidden');
-        }
-
         function guardarDatos() {
             localStorage.setItem('productosDB', JSON.stringify(productosDB));
             localStorage.setItem('nextProductoId', nextProductoId);
             localStorage.setItem('nextLoteId', nextLoteId);
-            actualizarContador();
+            if (document.getElementById('tabReportes').classList.contains('tab-active')) {
+                renderizarReportes();
+            }
         }
 
         function cargarDatos() {
@@ -231,10 +346,9 @@
                 nextProductoId = parseInt(localStorage.getItem('nextProductoId')) || 3;
                 nextLoteId = parseInt(localStorage.getItem('nextLoteId')) || 300;
             }
-            actualizarContador();
         }
 
-        function escapeHtml(str) {
+        function escapar(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
         }
@@ -242,69 +356,158 @@
         function renderizarLotes(lotes) {
             const container = document.getElementById('listaDeLotes');
             if (!lotes || lotes.length === 0) {
-                container.innerHTML = '<div class="text-center py-6 text-gray-500">📭 No hay lotes registrados</div>';
+                container.innerHTML = '<div class="text-center py-6 text-gray-500 text-sm">📭 No hay lotes registrados</div>';
                 return;
             }
-            const lotesOrdenados = [...lotes].sort((a, b) => new Date(a.fecha_caducidad) - new Date(b.fecha_caducidad));
-            container.innerHTML = lotesOrdenados.map(lote => {
+            const ordenados = [...lotes].sort((a, b) => new Date(a.fecha_caducidad) - new Date(b.fecha_caducidad));
+            container.innerHTML = ordenados.map(lote => {
                 const diffDays = Math.ceil((new Date(lote.fecha_caducidad) - new Date()) / (1000 * 60 * 60 * 24));
-                let colorClass = 'text-green-400', bgClass = 'bg-green-900/20', estadoBadge = '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">VIGENTE</span>';
-                if (diffDays < 0) { colorClass = 'text-red-400'; bgClass = 'bg-red-900/20'; estadoBadge = '<span class="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">VENCIDO</span>'; }
-                else if (diffDays < 30) { colorClass = 'text-orange-400'; bgClass = 'bg-orange-900/20'; estadoBadge = '<span class="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">PRÓXIMO</span>'; }
-                const diasRestantes = diffDays > 0 ? `📅 ${diffDays} días restantes` : diffDays === 0 ? '⚠️ Caduca HOY' : `❌ Vencido hace ${Math.abs(diffDays)} días`;
-                return `<div class="${bgClass} p-3 rounded-xl border border-gray-700"><div class="flex justify-between items-start"><div class="flex-1"><div class="flex items-center gap-2 mb-2 flex-wrap"><span class="text-lg">🏷️</span><span class="font-mono font-bold text-white">${escapeHtml(lote.lote)}</span>${estadoBadge}</div><div class="space-y-1 text-sm"><div class="flex items-center gap-2"><span>📊</span><span class="text-gray-400">Cantidad:</span><span class="font-semibold text-white">${lote.cantidad}</span></div><div class="flex items-center gap-2"><span>📅</span><span class="text-gray-400">Caducidad:</span><span class="font-semibold ${colorClass}">${lote.fecha_caducidad}</span></div></div><div class="text-xs text-gray-500 mt-2">${diasRestantes}</div></div><div class="flex gap-2 ml-2"><button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm">✏️</button><button onclick="eliminarLote(${lote.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm">🗑️</button></div></div></div>`;
+                let colorClass = 'text-green-400';
+                let badge = '<span class="text-[10px] bg-green-900 text-green-300 px-2 py-0.5 rounded-full">VIGENTE</span>';
+                if (diffDays < 0) {
+                    colorClass = 'text-red-400';
+                    badge = '<span class="text-[10px] bg-red-900 text-red-300 px-2 py-0.5 rounded-full">VENCIDO</span>';
+                } else if (diffDays < 30) {
+                    colorClass = 'text-orange-400';
+                    badge = '<span class="text-[10px] bg-orange-900 text-orange-300 px-2 py-0.5 rounded-full">PRÓXIMO</span>';
+                }
+                const dias = diffDays > 0 ? `${diffDays} días` : diffDays === 0 ? 'HOY' : `Vencido hace ${Math.abs(diffDays)}d`;
+
+                return `
+                    <div class="lote-card bg-gray-800 rounded-xl p-3 border border-gray-700">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                    <span class="text-sm font-mono font-bold text-white">${escapar(lote.lote)}</span>
+                                    ${badge}
+                                </div>
+                                <div class="space-y-1 text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-500">📊 Cantidad:</span>
+                                        <span class="font-semibold text-white">${lote.cantidad}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-500">📅 Caduca:</span>
+                                        <span class="font-semibold ${colorClass}">${lote.fecha_caducidad}</span>
+                                        <span class="text-gray-600">(${dias})</span>
+                                    </div>
+                                    ${lote.ubicacion ? `<div class="flex items-center gap-2"><span class="text-gray-500">📍 Ubicación:</span><span class="text-gray-300">${escapar(lote.ubicacion)}</span></div>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1 ml-2">
+                                <button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" class="bg-gray-700 hover:bg-yellow-600 text-gray-300 hover:text-white px-2 py-1 rounded-lg text-xs transition-all">✏️</button>
+                                <button onclick="eliminarLote(${lote.id})" class="bg-gray-700 hover:bg-red-600 text-gray-300 hover:text-white px-2 py-1 rounded-lg text-xs transition-all">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }).join('');
         }
 
-        // LIMPIAR TODO - LA FUNCIÓN QUE FINALMENTE FUNCIONA
         function resetearApp() {
-            // 1. Limpiar todos los inputs de texto y datos
-            const inputs = ['lote', 'cantidad', 'fechaCaducidad', 'nombreProducto', 'marcaProducto', 'codigoManual'];
-            inputs.forEach(id => {
+            ['lote', 'cantidad', 'fechaCaducidad', 'ubicacionLote', 'nombreProducto', 'marcaProducto', 'ubicacionProducto', 'codigoManual'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
-
-            // 2. Resetear la interfaz visual (ocultar/mostrar secciones)
             document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
             document.getElementById('formNuevoProducto').classList.add('hidden');
             document.getElementById('formLote').classList.add('hidden');
             document.getElementById('scannerContainer').classList.add('hidden');
             document.getElementById('mensajeInicial').classList.remove('hidden');
-
-            // 3. Limpiar contenedores de texto dinámico
             document.getElementById('codigoMostrado').textContent = '';
             document.getElementById('listaDeLotes').innerHTML = '';
-
-            // 4. Detener el escáner si está activo
-            if (html5QrCode) {
-                html5QrCode.stop().catch(err => console.log("Escáner ya estaba detenido"));
-            }
-
-            // 5. Resetear variables de control
+            if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop().catch(() => { });
             currentProductoId = null;
             currentCodigo = null;
-
-            // 6. Feedback táctil (muy estilo Telegram)
-            tg.HapticFeedback.notificationOccurred('success');
-            actualizarContador();
         }
-        // ESCÁNER
+
+        // Reportes
+        function obtenerProductosProximosAVencer(dias) {
+            const hoy = new Date();
+            const limite = new Date();
+            limite.setDate(hoy.getDate() + dias);
+            const resultados = [];
+            for (const producto of productosDB) {
+                for (const lote of producto.lotes) {
+                    const fechaCad = new Date(lote.fecha_caducidad);
+                    if (fechaCad <= limite && fechaCad >= hoy) {
+                        resultados.push({
+                            producto: producto.nombre,
+                            marca: producto.marca,
+                            lote: lote.lote,
+                            cantidad: lote.cantidad,
+                            caducidad: lote.fecha_caducidad,
+                            ubicacion: lote.ubicacion || producto.ubicacion || 'No especificada',
+                            diasRestantes: Math.ceil((fechaCad - hoy) / (1000 * 60 * 60 * 24))
+                        });
+                    }
+                }
+            }
+            return resultados.sort((a, b) => a.diasRestantes - b.diasRestantes);
+        }
+
+        function renderizarReportes() {
+            let productosFiltrados;
+            if (filtroActual === 0) {
+                productosFiltrados = [];
+                for (const p of productosDB) {
+                    for (const l of p.lotes) {
+                        const diff = Math.ceil((new Date(l.fecha_caducidad) - new Date()) / (1000 * 60 * 60 * 24));
+                        productosFiltrados.push({
+                            producto: p.nombre, marca: p.marca, lote: l.lote, cantidad: l.cantidad,
+                            caducidad: l.fecha_caducidad, ubicacion: l.ubicacion || p.ubicacion || 'N/E',
+                            diasRestantes: diff
+                        });
+                    }
+                }
+                productosFiltrados = productosFiltrados.sort((a, b) => a.diasRestantes - b.diasRestantes);
+            } else {
+                productosFiltrados = obtenerProductosProximosAVencer(filtroActual);
+            }
+
+            const container = document.getElementById('listaProximosVencer');
+            if (productosFiltrados.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm">✅ No hay productos próximos a vencer</div>';
+                return;
+            }
+            container.innerHTML = productosFiltrados.map(p => {
+                let bgColor = 'bg-gray-800';
+                if (p.diasRestantes <= 7) bgColor = 'bg-red-900/30 border-red-800';
+                else if (p.diasRestantes <= 15) bgColor = 'bg-orange-900/30 border-orange-800';
+                return `
+                    <div class="${bgColor} p-3 rounded-xl border border-gray-700">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-white text-sm">${escapar(p.producto)}</h3>
+                                <p class="text-[10px] text-gray-500">${p.marca ? escapar(p.marca) : 'Sin marca'}</p>
+                            </div>
+                            <span class="text-[10px] bg-blue-600 px-2 py-1 rounded-full">${p.diasRestantes} días</span>
+                        </div>
+                        <div class="space-y-1 text-xs">
+                            <div><span class="text-gray-500">🏷️ Lote:</span> <span class="font-mono text-gray-300">${escapar(p.lote)}</span></div>
+                            <div><span class="text-gray-500">📊 Cantidad:</span> <span class="font-semibold text-white">${p.cantidad}</span></div>
+                            <div><span class="text-gray-500">📅 Caduca:</span> <span class="font-semibold text-red-400">${p.caducidad}</span></div>
+                            <div><span class="text-gray-500">📍 Ubicación:</span> <span class="text-gray-300">${escapar(p.ubicacion)}</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Escáner
         async function startScanner() {
             document.getElementById('scannerContainer').classList.remove('hidden');
             html5QrCode = new Html5Qrcode("reader");
             try {
-                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 100 }, aspectRatio: 1.0 },
-                    (decodedText) => {
+                await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 100 } },
+                    (decoded) => {
                         html5QrCode.stop();
                         document.getElementById('scannerContainer').classList.add('hidden');
-                        document.getElementById('codigoManual').value = decodedText;
-                        procesarCodigo(decodedText);
-                        tg.showAlert(`✅ Código: ${decodedText}`);
-                    },
-                    (errorMessage) => { }
-                );
-            } catch (err) { tg.showAlert(`Error: ${err}`); document.getElementById('scannerContainer').classList.add('hidden'); }
+                        document.getElementById('codigoManual').value = decoded;
+                        procesarCodigo(decoded);
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }, () => { });
+            } catch (err) { tg.showAlert(`Error: ${err}`); }
         }
 
         function stopScanner() {
@@ -322,6 +525,7 @@
                 currentProductoId = producto.id;
                 document.getElementById('productoNombre').textContent = producto.nombre;
                 document.getElementById('productoMarca').textContent = producto.marca ? `Marca: ${producto.marca}` : '';
+                document.getElementById('productoUbicacion').textContent = producto.ubicacion ? `📍 ${producto.ubicacion}` : '';
                 document.getElementById('formNuevoProducto').classList.add('hidden');
                 document.getElementById('formLote').classList.remove('hidden');
                 renderizarLotes(producto.lotes);
@@ -332,26 +536,28 @@
             }
         }
 
-        // EVENTOS
+        // Eventos
         document.getElementById('scanBtn').onclick = startScanner;
         document.getElementById('cancelScanner').onclick = stopScanner;
-        document.getElementById('codigoManual').onchange = (e) => { if (e.target.value) { stopScanner(); procesarCodigo(e.target.value); } };
+        document.getElementById('codigoManual').onchange = (e) => { if (e.target.value) procesarCodigo(e.target.value); };
 
         document.getElementById('guardarNuevoProductoBtn').onclick = () => {
             const nombre = document.getElementById('nombreProducto').value.trim();
             if (!nombre) { tg.showAlert('❌ Nombre obligatorio'); return; }
-            const nuevoProducto = { id: nextProductoId++, codigo: currentCodigo, nombre: nombre, marca: document.getElementById('marcaProducto').value.trim(), lotes: [] };
-            productosDB.push(nuevoProducto);
-            currentProductoId = nuevoProducto.id;
+            const nuevo = { id: nextProductoId++, codigo: currentCodigo, nombre: nombre, marca: document.getElementById('marcaProducto').value.trim(), ubicacion: document.getElementById('ubicacionProducto').value.trim(), lotes: [] };
+            productosDB.push(nuevo);
+            currentProductoId = nuevo.id;
             guardarDatos();
             tg.showAlert('✅ Producto guardado');
             document.getElementById('formNuevoProducto').classList.add('hidden');
             document.getElementById('formLote').classList.remove('hidden');
             document.getElementById('productoNombre').textContent = nombre;
-            document.getElementById('productoMarca').textContent = nuevoProducto.marca ? `Marca: ${nuevoProducto.marca}` : '';
+            document.getElementById('productoMarca').textContent = nuevo.marca ? `Marca: ${nuevo.marca}` : '';
+            document.getElementById('productoUbicacion').textContent = nuevo.ubicacion ? `📍 ${nuevo.ubicacion}` : '';
             document.getElementById('listaDeLotes').innerHTML = '<div class="text-center py-6 text-gray-500">📭 No hay lotes registrados</div>';
             document.getElementById('nombreProducto').value = '';
             document.getElementById('marcaProducto').value = '';
+            document.getElementById('ubicacionProducto').value = '';
         };
 
         document.getElementById('guardarLoteBtn').onclick = () => {
@@ -362,23 +568,57 @@
             const producto = productosDB.find(p => p.id === currentProductoId);
             if (producto) {
                 if (producto.lotes.some(l => l.lote === lote)) { tg.showAlert('❌ Lote ya existe'); return; }
-                producto.lotes.push({ id: nextLoteId++, lote: lote, cantidad: cantidad, fecha_caducidad: fecha });
+                producto.lotes.push({ id: nextLoteId++, lote: lote, cantidad: cantidad, fecha_caducidad: fecha, ubicacion: document.getElementById('ubicacionLote').value.trim() });
                 guardarDatos();
                 tg.showAlert('✅ Lote guardado');
                 document.getElementById('lote').value = '';
                 document.getElementById('cantidad').value = '';
                 document.getElementById('fechaCaducidad').value = '';
+                document.getElementById('ubicacionLote').value = '';
                 renderizarLotes(producto.lotes);
             }
         };
 
-        // ========== BOTÓN FINALIZAR - AHORA SÍ FUNCIONA ==========
-        document.getElementById('finalizarProductoBtn').onclick = function () {
-            tg.showConfirm('¿Terminaste con este producto?', (confirmed) => {
-                if (confirmed) {
-                    resetearApp();
-                }
-            });
+        document.getElementById('finalizarProductoBtn').onclick = () => {
+            tg.showConfirm('¿Terminaste con este producto?', (confirmed) => { if (confirmed) resetearApp(); });
+        };
+
+        // Tabs
+        document.getElementById('tabInventario').onclick = () => {
+            document.getElementById('tabInventario').className = 'tab-active flex-1 py-2.5 rounded-xl font-semibold text-sm';
+            document.getElementById('tabReportes').className = 'tab-inactive flex-1 py-2.5 rounded-xl font-semibold text-sm';
+            document.getElementById('panelInventario').classList.remove('hidden');
+            document.getElementById('panelReportes').classList.add('hidden');
+        };
+        document.getElementById('tabReportes').onclick = () => {
+            document.getElementById('tabReportes').className = 'tab-active flex-1 py-2.5 rounded-xl font-semibold text-sm';
+            document.getElementById('tabInventario').className = 'tab-inactive flex-1 py-2.5 rounded-xl font-semibold text-sm';
+            document.getElementById('panelReportes').classList.remove('hidden');
+            document.getElementById('panelInventario').classList.add('hidden');
+            renderizarReportes();
+        };
+
+        // Filtros
+        document.getElementById('filter7dias').onclick = () => { filtroActual = 7; renderizarReportes(); };
+        document.getElementById('filter15dias').onclick = () => { filtroActual = 15; renderizarReportes(); };
+        document.getElementById('filter30dias').onclick = () => { filtroActual = 30; renderizarReportes(); };
+        document.getElementById('filterTodos').onclick = () => { filtroActual = 0; renderizarReportes(); };
+
+        // Exportar
+        document.getElementById('exportarReporteBtn').onclick = () => {
+            let texto = `REPORTE DE PRODUCTOS PRÓXIMOS A VENCER\n`;
+            texto += `TIENDA: ${nombreComercio}\n`;
+            texto += `================================\n\n`;
+            const productos = filtroActual === 0 ? obtenerProductosProximosAVencer(999) : obtenerProductosProximosAVencer(filtroActual);
+            for (const p of productos) {
+                texto += `📦 ${p.producto}\n`;
+                texto += `   Lote: ${p.lote}\n`;
+                texto += `   Cantidad: ${p.cantidad}\n`;
+                texto += `   Caduca: ${p.caducidad} (${p.diasRestantes} días)\n`;
+                texto += `   Ubicación: ${p.ubicacion}\n\n`;
+            }
+            navigator.clipboard.writeText(texto);
+            tg.showAlert("📋 Reporte copiado al portapapeles");
         };
 
         // Funciones globales
@@ -394,13 +634,12 @@
         };
 
         window.eliminarLote = (loteId) => {
-            tg.showPopup({ title: '⚠️ Eliminar', message: '¿Eliminar este lote?', buttons: [{ type: 'cancel', text: 'No' }, { type: 'destructive', text: 'Sí' }] })
-                .then(confirm => {
-                    if (confirm === 'destructive') {
-                        const producto = productosDB.find(p => p.id === currentProductoId);
-                        if (producto) { producto.lotes = producto.lotes.filter(l => l.id !== loteId); guardarDatos(); renderizarLotes(producto.lotes); tg.showAlert('✅ Lote eliminado'); }
-                    }
-                });
+            tg.showConfirm('¿Eliminar este lote?', (confirmed) => {
+                if (confirmed) {
+                    const producto = productosDB.find(p => p.id === currentProductoId);
+                    if (producto) { producto.lotes = producto.lotes.filter(l => l.id !== loteId); guardarDatos(); renderizarLotes(producto.lotes); tg.showAlert('✅ Lote eliminado'); }
+                }
+            });
         };
 
         cargarDatos();

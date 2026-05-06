@@ -94,6 +94,10 @@
         .animate-card {
             animation: fadeIn 0.4s ease forwards;
         }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
 
@@ -105,6 +109,8 @@
             <h1 class="text-3xl font-black italic tracking-tighter transition-colors duration-500">
                 Maiba<span id="brand-sync" class="text-green-500 text-4xl transition-colors duration-500">Sync</span>
             </h1>
+            <p class="text-[9px] text-gray-600 font-bold tracking-[0.3em] uppercase mt-1">Enterprise Security Protocol
+            </p>
         </div>
 
         <!-- TABS -->
@@ -123,17 +129,25 @@
             <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 <button onclick="setCanal('tg')" id="btn-tg"
                     class="flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.18z" />
+                    </svg>
                     Telegram
                 </button>
                 <button onclick="setCanal('wa')" id="btn-wa"
                     class="flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 transition-all shadow-lg">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.672 1.433 5.66 1.434h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
                     WhatsApp
                 </button>
             </div>
 
             <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfono (10 dígitos)</label>
-                <input type="tel" id="telefono" maxlength="10" placeholder="6441234567"
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfono</label>
+                <input type="tel" id="telefono" maxlength="10" placeholder="6440000000"
                     class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-lg font-bold">
             </div>
 
@@ -147,12 +161,13 @@
             </div>
 
             <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha y Hora</label>
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha (Permitido 19:00 -
+                    21:00)</label>
                 <input type="datetime-local" id="fecha"
                     class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base">
             </div>
 
-            <button onclick="validarYGuardar()" id="btnMain"
+            <button onclick="guardarRegistro()" id="btnMain"
                 class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">
                 Agendar Recordatorio
             </button>
@@ -170,21 +185,18 @@
             </div>
             <div id="contenedor-mensajes" class="space-y-4"></div>
             <button onclick="cargarMas()" id="btn-more"
-                class="hidden w-full py-4 border border-dashed border-gray-700 rounded-2xl text-gray-500 text-[10px] font-black uppercase tracking-widest transition-colors">Cargar
-                más</button>
+                class="hidden w-full py-4 border border-dashed border-gray-700 rounded-2xl text-gray-500 text-[10px] font-black uppercase tracking-widest transition-colors">
+                Cargar más mensajes
+            </button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         let canal = 'wa';
-        let mensajes = JSON.parse(localStorage.getItem('maiba_msgs') || '[]');
-        let itemsAMostrar = 5;
         let filtroActual = 'all';
-
-        // REGLAS DE SPAM
-        const SPAM_KEYWORDS = ['ganaste', 'premio', 'click aquí', 'oferta exclusiva', 'urgente', 'dinero fácil'];
-        const MIN_MINUTES_BETWEEN_MESSAGES = 5;
+        let itemsAMostrar = 5;
+        let mensajes = JSON.parse(localStorage.getItem('maiba_msgs') || '[]');
 
         function updateCharCount(el) {
             document.getElementById('char-count').innerText = `${el.value.length} / 500`;
@@ -193,8 +205,8 @@
         function setCanal(tipo) {
             canal = tipo;
             const isWa = tipo === 'wa';
-            document.getElementById('btn-wa').className = isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all';
-            document.getElementById('btn-tg').className = !isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all';
+            document.getElementById('btn-wa').className = isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
+            document.getElementById('btn-tg').className = !isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
             document.getElementById('brand-sync').className = isWa ? 'text-green-500 text-4xl transition-colors' : 'text-blue-500 text-4xl transition-colors';
             updateThemeStyles(isWa);
             tg.HapticFeedback.impactOccurred('light');
@@ -202,57 +214,109 @@
 
         function updateThemeStyles(isWa) {
             const inputs = document.querySelectorAll('.input-boutique');
-            inputs.forEach(i => { i.classList.remove('border-wa', 'border-tg'); i.classList.add(isWa ? 'border-wa' : 'border-tg'); });
-            const tab = document.getElementById('tab-form');
-            if (tab.classList.contains('tab-active-wa') || tab.classList.contains('tab-active-tg')) {
-                tab.classList.remove('tab-active-wa', 'tab-active-tg');
-                tab.classList.add(isWa ? 'tab-active-wa' : 'tab-active-tg');
-            }
-        }
-
-        function validarYGuardar() {
-            const tel = document.getElementById('telefono').value.trim();
-            const msg = document.getElementById('mensaje').value.toLowerCase();
-            const fecStr = document.getElementById('fecha').value;
-            const nuevaFecha = new Date(fecStr);
-
-            // 1. Validación de número
-            if (!/^\d{10}$/.test(tel)) return tg.showAlert("Ingresa un número válido de 10 dígitos.");
-
-            // 2. Validación de Contenido Sensible
-            const detectado = SPAM_KEYWORDS.filter(word => msg.includes(word));
-            if (detectado.length > 0) {
-                tg.showConfirm(`Alerta: Tu mensaje contiene palabras que podrían marcarse como SPAM (${detectado.join(', ')}). ¿Deseas continuar bajo tu propio riesgo?`, (c) => {
-                    if (c) checarIntervalo(tel, nuevaFecha);
-                });
-            } else {
-                checarIntervalo(tel, nuevaFecha);
-            }
-        }
-
-        function checarIntervalo(tel, nuevaFecha) {
-            // 3. Validación de Intervalo de Tiempo (Anti-Burst)
-            const colision = mensajes.some(m => {
-                const diff = Math.abs(new Date(m.fec) - nuevaFecha) / 1000 / 60;
-                return diff < MIN_MINUTES_BETWEEN_MESSAGES;
+            inputs.forEach(input => {
+                input.classList.remove('border-wa', 'border-tg');
+                input.classList.add(isWa ? 'border-wa' : 'border-tg');
             });
-
-            if (colision) {
-                return tg.showAlert(`¡Cuidado! Tienes otro mensaje programado en un rango menor a ${MIN_MINUTES_BETWEEN_MESSAGES} minutos. Separa los envíos para evitar bloqueos.`);
+            const tabForm = document.getElementById('tab-form');
+            if (tabForm.classList.contains('tab-active-wa') || tabForm.classList.contains('tab-active-tg')) {
+                tabForm.classList.remove('tab-active-wa', 'tab-active-tg');
+                tabForm.classList.add(isWa ? 'tab-active-wa' : 'tab-active-tg');
             }
-
-            ejecutarGuardado();
+            const fAll = document.getElementById('f-all');
+            fAll.classList.remove('active-wa', 'active-tg');
+            fAll.classList.add(isWa ? 'active-wa' : 'active-tg');
         }
 
-        function ejecutarGuardado() {
+        function switchTab(view) {
+            const isWa = canal === 'wa';
+            document.getElementById('view-form').classList.toggle('hidden', view !== 'form');
+            document.getElementById('view-list').classList.toggle('hidden', view !== 'list');
+            const tabForm = document.getElementById('tab-form');
+            const tabList = document.getElementById('tab-list');
+            tabForm.className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'form' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
+            tabList.className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'list' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
+            if (view === 'list') renderList();
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function setFilter(f) {
+            filtroActual = f;
+            itemsAMostrar = 5;
+            const isWa = canal === 'wa';
+            ['f-all', 'f-wa', 'f-tg'].forEach(id => document.getElementById(id).classList.remove('active-wa', 'active-tg'));
+            document.getElementById(`f-${f}`).classList.add(isWa ? 'active-wa' : 'active-tg');
+            renderList();
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function renderList() {
+            const cont = document.getElementById('contenedor-mensajes');
+            const btnMore = document.getElementById('btn-more');
+            let filtrados = mensajes.filter(m => filtroActual === 'all' || m.canal === filtroActual);
+            filtrados.sort((a, b) => new Date(a.fec) - new Date(b.fec));
+            const visible = filtrados.slice(0, itemsAMostrar);
+            if (filtrados.length === 0) {
+                cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold uppercase text-[10px] tracking-widest">Sin mensajes</div>';
+                btnMore.classList.add('hidden');
+                return;
+            }
+            cont.innerHTML = visible.map((m, index) => `
+                <div class="msg-card p-6 rounded-[2rem] space-y-3 animate-card" style="animation-delay: ${index * 0.05}s">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
+                        <div class="flex gap-4">
+                            <button onclick="editar(${m.id})" class="opacity-70 hover:opacity-100">✏️</button>
+                            <button onclick="eliminar(${m.id})" class="opacity-70 hover:opacity-100">🗑️</button>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-black text-white tracking-tight">${m.tel}</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium">${m.msg}</p>
+                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 flex justify-between">
+                        <span class="text-white">${m.fec.replace('T', ' — ')}</span>
+                    </div>
+                </div>
+            `).join('');
+            btnMore.classList.toggle('hidden', filtrados.length <= itemsAMostrar);
+        }
+
+        function guardarRegistro() {
             const tel = document.getElementById('telefono').value.trim();
-            const msg = document.getElementById('mensaje').value;
+            const msg = document.getElementById('mensaje').value.trim();
             const fecStr = document.getElementById('fecha').value;
             const editId = document.getElementById('edit-id').value;
 
+            if (!/^\d{10}$/.test(tel)) return tg.showAlert("Número inválido (deben ser 10 dígitos).");
+            if (!msg || !fecStr) return tg.showAlert("Faltan datos.");
+
+            const fechaNueva = new Date(fecStr);
+            const hora = fechaNueva.getHours();
+            const soloFecha = fechaNueva.toISOString().split('T')[0];
+
+            // REGLA 1: Horario restringido (19:00 - 21:00)
+            if (hora < 19 || hora >= 21) {
+                return tg.showAlert("⚠️ Horario denegado. Solo se permite de 19:00 a 21:00 hrs.");
+            }
+
+            // REGLA 2: Mínimo 1 hora de diferencia entre envíos
+            const colision = mensajes.some(m => {
+                if (editId && m.id == editId) return false;
+                const diff = Math.abs(new Date(m.fec) - fechaNueva) / 1000 / 60;
+                return diff < 60;
+            });
+            if (colision) return tg.showAlert("⚠️ Error de frecuencia: Debe haber al menos 1 hora de diferencia entre mensajes.");
+
+            // REGLA 3: Máximo 7 mensajes al día al mismo número
+            const conteoHoy = mensajes.filter(m => {
+                if (editId && m.id == editId) return false;
+                return m.tel === tel && m.fec.startsWith(soloFecha);
+            }).length;
+            if (conteoHoy >= 7) return tg.showAlert(`⚠️ Límite diario: El número ${tel} ya alcanzó los 7 mensajes hoy.`);
+
+            // Guardado final
             if (editId) {
                 const idx = mensajes.findIndex(m => m.id == editId);
-                mensajes[idx] = { id: parseInt(editId), tel, msg, fec: fecStr, canal };
+                mensajes[idx] = { id: editId, tel, msg, fec: fecStr, canal };
             } else {
                 mensajes.push({ id: Date.now(), tel, msg, fec: fecStr, canal });
             }
@@ -263,40 +327,15 @@
             switchTab('list');
         }
 
-        function switchTab(v) {
-            const isWa = canal === 'wa';
-            document.getElementById('view-form').classList.toggle('hidden', v !== 'form');
-            document.getElementById('view-list').classList.toggle('hidden', v !== 'list');
-            document.getElementById('tab-form').className = `flex-1 py-4 font-black text-[10px] tracking-widest uppercase transition-all ${v === 'form' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-            document.getElementById('tab-list').className = `flex-1 py-4 font-black text-[10px] tracking-widest uppercase transition-all ${v === 'list' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-            if (v === 'list') renderList();
-        }
-
-        function renderList() {
-            const cont = document.getElementById('contenedor-mensajes');
-            let filtrados = mensajes.filter(m => filtroActual === 'all' || m.canal === filtroActual);
-            filtrados.sort((a, b) => new Date(a.fec) - new Date(b.fec));
-            const visible = filtrados.slice(0, itemsAMostrar);
-
-            if (filtrados.length === 0) {
-                cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-black text-[10px] tracking-widest">BANDEJA VACÍA</div>';
-                return;
-            }
-
-            cont.innerHTML = visible.map((m, i) => `
-                <div class="msg-card p-6 rounded-[2rem] space-y-3 animate-card" style="animation-delay: ${i * 0.05}s">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[9px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal}</span>
-                        <div class="flex gap-4">
-                            <button onclick="editar(${m.id})">✏️</button>
-                            <button onclick="eliminar(${m.id})">🗑️</button>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-black text-white">${m.tel}</h3>
-                    <p class="text-gray-400 text-sm font-medium">${m.msg}</p>
-                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 uppercase">${m.fec.replace('T', ' @ ')}</div>
-                </div>
-            `).join('');
+        function eliminar(id) {
+            tg.showConfirm("¿Eliminar?", (c) => {
+                if (c) {
+                    mensajes = mensajes.filter(m => m.id !== id);
+                    localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
+                    renderList();
+                    tg.HapticFeedback.notificationOccurred('warning');
+                }
+            });
         }
 
         function editar(id) {
@@ -305,25 +344,19 @@
             document.getElementById('mensaje').value = m.msg;
             document.getElementById('fecha').value = m.fec;
             document.getElementById('edit-id').value = m.id;
+            updateCharCount(document.getElementById('mensaje'));
             setCanal(m.canal);
             switchTab('form');
-        }
-
-        function eliminar(id) {
-            tg.showConfirm("¿Eliminar registro?", (c) => {
-                if (c) {
-                    mensajes = mensajes.filter(m => m.id !== id);
-                    localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-                    renderList();
-                }
-            });
+            document.getElementById('btnMain').innerText = "Actualizar";
         }
 
         function limpiarForm() {
             document.getElementById('telefono').value = '';
             document.getElementById('mensaje').value = '';
             document.getElementById('edit-id').value = '';
-            const d = new Date(); d.setHours(d.getHours() + 1);
+            document.getElementById('char-count').innerText = "0 / 500";
+            document.getElementById('btnMain').innerText = "Agendar Recordatorio";
+            const d = new Date(); d.setHours(19, 0, 0, 0); // Default a las 7 PM
             document.getElementById('fecha').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         }
 

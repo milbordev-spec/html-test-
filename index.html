@@ -39,7 +39,6 @@
             }
         }
 
-        /* Ocultar el lector QR cuando no se usa */
         #reader {
             width: 100%;
         }
@@ -50,7 +49,6 @@
             border: 2px solid #3b82f6;
         }
 
-        /* Scrollbar oscura */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -63,6 +61,11 @@
         ::-webkit-scrollbar-thumb {
             background: #475569;
             border-radius: 10px;
+        }
+
+        /* Estilo para el contador de productos */
+        .counter-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         }
     </style>
 </head>
@@ -81,6 +84,17 @@
                     <h1 class="text-xl font-bold text-white">Control Caducidades</h1>
                     <p class="text-xs text-gray-400">Escanea código de barras (EAN-13)</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Contador de productos registrados -->
+        <div id="contadorProductos" class="counter-card rounded-xl p-3 mb-4 border border-gray-700 hidden">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">📊</span>
+                    <span class="text-gray-300 font-semibold">Productos registrados:</span>
+                </div>
+                <span id="totalProductos" class="text-2xl font-bold text-blue-400">0</span>
             </div>
         </div>
 
@@ -153,12 +167,10 @@
                         <span>➕</span> Agregar nuevo lote
                     </h3>
                     <div class="space-y-3">
-                        <div class="flex gap-2">
-                            <input type="text" id="lote" placeholder="Número de lote *"
-                                class="flex-1 p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
-                            <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
-                                class="w-28 p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
-                        </div>
+                        <input type="text" id="lote" placeholder="Número de lote *"
+                            class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
+                        <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
+                            class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
                         <input type="date" id="fechaCaducidad"
                             class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
 
@@ -226,11 +238,23 @@
         let nextProductoId = 3;
         let nextLoteId = 300;
 
+        // Función para actualizar contador
+        function actualizarContador() {
+            const total = productosDB.length;
+            document.getElementById('totalProductos').textContent = total;
+            if (total > 0) {
+                document.getElementById('contadorProductos').classList.remove('hidden');
+            } else {
+                document.getElementById('contadorProductos').classList.add('hidden');
+            }
+        }
+
         // Persistencia
         function guardarDatos() {
             localStorage.setItem('productosDB', JSON.stringify(productosDB));
             localStorage.setItem('nextProductoId', nextProductoId);
             localStorage.setItem('nextLoteId', nextLoteId);
+            actualizarContador();
         }
 
         function cargarDatos() {
@@ -240,8 +264,37 @@
                 nextProductoId = parseInt(localStorage.getItem('nextProductoId')) || 3;
                 nextLoteId = parseInt(localStorage.getItem('nextLoteId')) || 300;
             }
+            actualizarContador();
         }
         cargarDatos();
+
+        // Función para limpiar TODO y volver al inicio
+        function limpiarYVolverInicio() {
+            // Limpiar todos los campos
+            document.getElementById('lote').value = '';
+            document.getElementById('cantidad').value = '';
+            document.getElementById('fechaCaducidad').value = '';
+            document.getElementById('nombreProducto').value = '';
+            document.getElementById('marcaProducto').value = '';
+            document.getElementById('codigoManual').value = '';
+
+            // Ocultar contenido y mostrar inicio
+            document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
+            document.getElementById('mensajeInicial').classList.remove('hidden');
+
+            // Detener escáner si está activo
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop();
+            }
+            document.getElementById('scannerContainer').classList.add('hidden');
+
+            // Resetear variables
+            currentProductoId = null;
+            currentCodigo = null;
+
+            // Actualizar contador
+            actualizarContador();
+        }
 
         // Iniciar escáner con cámara REAL
         async function startScanner() {
@@ -251,14 +304,13 @@
             html5QrCode = new Html5Qrcode("reader");
             try {
                 await html5QrCode.start(
-                    { facingMode: "environment" }, // Cámara trasera
+                    { facingMode: "environment" },
                     {
                         fps: 10,
                         qrbox: { width: 250, height: 100 },
                         aspectRatio: 1.0
                     },
                     (decodedText, decodedResult) => {
-                        // Éxito: detectó código
                         html5QrCode.stop();
                         scannerContainer.classList.add('hidden');
                         document.getElementById('codigoManual').value = decodedText;
@@ -266,7 +318,6 @@
                         tg.showAlert(`✅ Código detectado: ${decodedText}`);
                     },
                     (errorMessage) => {
-                        // Ignorar errores de frame, solo mostrar si es grave
                         if (errorMessage.includes("No MultiFormat Readers")) {
                             console.log("Esperando código...");
                         }
@@ -353,8 +404,7 @@
                     estadoBadge = '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">VIGENTE</span>';
                 }
 
-                // Calcular días restantes
-                const diasRestantes = diffDays > 0 ? `(${diffDays} días)` : diffDays === 0 ? '(Hoy)' : `(Vencido hace ${Math.abs(diffDays)} días)`;
+                const diasRestantes = diffDays > 0 ? `📅 ${diffDays} días restantes` : diffDays === 0 ? '⚠️ Caduca HOY' : `❌ Vencido hace ${Math.abs(diffDays)} días`;
 
                 return `
                     <div class="${bgClass} p-3 rounded-xl border border-gray-700 transition-all">
@@ -365,19 +415,20 @@
                                     <span class="font-mono font-bold text-white">${escapeHtml(lote.lote)}</span>
                                     ${estadoBadge}
                                 </div>
-                                <div class="grid grid-cols-2 gap-2 text-sm">
-                                    <div class="flex items-center gap-1">
+                                <!-- CAMBIADO: ahora cantidad y fecha en COLUMNA (vertical) -->
+                                <div class="space-y-1 text-sm">
+                                    <div class="flex items-center gap-2">
                                         <span>📊</span>
                                         <span class="text-gray-400">Cantidad:</span>
                                         <span class="font-semibold text-white">${lote.cantidad}</span>
                                     </div>
-                                    <div class="flex items-center gap-1">
+                                    <div class="flex items-center gap-2">
                                         <span>📅</span>
-                                        <span class="text-gray-400">Caduca:</span>
+                                        <span class="text-gray-400">Caducidad:</span>
                                         <span class="font-semibold ${colorClass}">${lote.fecha_caducidad}</span>
                                     </div>
                                 </div>
-                                <div class="text-xs text-gray-500 mt-1">${diasRestantes}</div>
+                                <div class="text-xs text-gray-500 mt-2">${diasRestantes}</div>
                             </div>
                             <div class="flex gap-2 ml-2">
                                 <button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" 
@@ -498,7 +549,7 @@
             }
         };
 
-        // Botón FINALIZAR - AHORA SÍ FUNCIONA
+        // Botón FINALIZAR - LIMPIA TODO COMPLETAMENTE
         document.getElementById('finalizarProductoBtn').onclick = () => {
             tg.showPopup({
                 title: '🏁 Finalizar',
@@ -509,25 +560,8 @@
                 ]
             }).then(confirmacion => {
                 if (confirmacion === 'ok') {
-                    // Guardar y limpiar
-                    guardarDatos();
-
-                    // Limpiar formulario
-                    document.getElementById('lote').value = '';
-                    document.getElementById('cantidad').value = '';
-                    document.getElementById('fechaCaducidad').value = '';
-                    document.getElementById('nombreProducto').value = '';
-                    document.getElementById('marcaProducto').value = '';
-                    document.getElementById('codigoManual').value = '';
-
-                    // Ocultar contenido y mostrar inicio
-                    document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
-                    document.getElementById('mensajeInicial').classList.remove('hidden');
-
-                    currentProductoId = null;
-                    currentCodigo = null;
-
-                    tg.showAlert('✅ Sesión finalizada. Puedes escanear otro producto.');
+                    limpiarYVolverInicio();
+                    tg.showAlert('✅ Sesión finalizada. ¡Puedes escanear otro producto!');
                 }
             });
         };

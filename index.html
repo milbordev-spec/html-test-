@@ -35,14 +35,22 @@
             border-bottom: 2px solid #10b981;
         }
 
+        .filter-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+
+        .filter-pill.active {
+            background: #10b981;
+            color: black;
+            border-color: #10b981;
+            font-weight: 900;
+        }
+
         .msg-card {
             background: rgba(30, 41, 59, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.2s;
-        }
-
-        .msg-card:active {
-            transform: scale(0.98);
         }
     </style>
 </head>
@@ -54,73 +62,89 @@
         <div class="text-center pt-4 mb-2">
             <h1 class="text-3xl font-black italic tracking-tighter">Maiba<span
                     class="text-green-500 text-4xl">Sync</span></h1>
-            <p class="text-[10px] text-gray-500 tracking-[0.4em] font-bold uppercase mt-1">Anti-Spam Protected</p>
         </div>
 
         <!-- TABS -->
         <div class="flex border-b border-gray-800 mb-6">
             <button onclick="switchTab('form')" id="tab-form"
-                class="flex-1 py-4 font-black text-xs tracking-widest tab-active">PROGRAMAR</button>
+                class="flex-1 py-4 font-black text-xs tracking-widest tab-active uppercase">Programar</button>
             <button onclick="switchTab('list')" id="tab-list"
-                class="flex-1 py-4 font-black text-xs tracking-widest text-gray-500">MIS MENSAJES</button>
+                class="flex-1 py-4 font-black text-xs tracking-widest text-gray-500 uppercase">Mis Mensajes</button>
         </div>
 
         <!-- VISTA FORMULARIO -->
         <div id="view-form" class="glass-card rounded-[2.5rem] p-7 space-y-5">
             <input type="hidden" id="edit-id">
-
             <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 <button onclick="setCanal('tg')" id="btn-tg"
-                    class="flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white transition-all uppercase">Telegram</button>
+                    class="flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase">Telegram</button>
                 <button onclick="setCanal('wa')" id="btn-wa"
-                    class="flex-1 py-3 rounded-lg text-xs font-black text-gray-500 transition-all uppercase">WhatsApp</button>
+                    class="flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase">WhatsApp</button>
             </div>
-
             <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfono Destino</label>
-                <input type="tel" id="telefono" placeholder="6441234567" maxlength="10"
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfono</label>
+                <input type="tel" id="telefono" maxlength="10"
                     class="input-boutique w-full p-4 rounded-2xl text-white outline-none text-lg font-bold">
             </div>
-
             <div class="space-y-1">
                 <div class="flex justify-between items-center px-1">
                     <label class="text-[10px] font-black text-gray-500 uppercase">Mensaje</label>
                     <span id="char-count" class="text-[10px] font-mono text-gray-500">0 / 500</span>
                 </div>
-                <textarea id="mensaje" rows="3" maxlength="500" placeholder="¿Qué quieres decir?"
-                    oninput="updateCharCount(this)"
-                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none resize-none text-base"></textarea>
+                <textarea id="mensaje" rows="3" maxlength="500"
+                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none text-base"></textarea>
             </div>
-
             <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha y Hora</label>
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha</label>
                 <input type="datetime-local" id="fecha"
                     class="input-boutique w-full p-4 rounded-2xl text-white outline-none text-base">
             </div>
-
             <button onclick="guardarRegistro()" id="btnMain"
-                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition-all shadow-xl">
+                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl">
                 Agendar Recordatorio
             </button>
         </div>
 
         <!-- VISTA LISTADO -->
-        <div id="view-list" class="hidden space-y-4">
-            <div id="contenedor-mensajes" class="space-y-4">
-                <!-- Inyección dinámica -->
+        <div id="view-list" class="hidden space-y-6">
+            <!-- FILTROS -->
+            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                <button onclick="setFilter('all')" id="f-all"
+                    class="filter-pill active px-5 py-2 rounded-full text-[10px] uppercase font-bold">Todos</button>
+                <button onclick="setFilter('wa')" id="f-wa"
+                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">WhatsApp</button>
+                <button onclick="setFilter('tg')" id="f-tg"
+                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">Telegram</button>
             </div>
+
+            <div id="contenedor-mensajes" class="space-y-4"></div>
+
+            <!-- BOTÓN CARGAR MÁS -->
+            <button onclick="cargarMas()" id="btn-more"
+                class="hidden w-full py-4 border border-dashed border-gray-700 rounded-2xl text-gray-500 text-[10px] font-black uppercase tracking-widest">
+                Cargar más registros
+            </button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         let canal = 'tg';
+        let filtroActual = 'all';
+        let itemsAMostrar = 5;
         let mensajes = JSON.parse(localStorage.getItem('maiba_msgs') || '[]');
 
         function updateCharCount(el) {
             document.getElementById('char-count').innerText = `${el.value.length} / 500`;
-            if (el.value.length >= 450) document.getElementById('char-count').classList.replace('text-gray-500', 'text-orange-500');
-            else document.getElementById('char-count').classList.replace('text-orange-500', 'text-gray-500');
+        }
+
+        function setFilter(f) {
+            filtroActual = f;
+            itemsAMostrar = 5; // Reset paginación al filtrar
+            ['f-all', 'f-wa', 'f-tg'].forEach(id => document.getElementById(id).classList.remove('active'));
+            document.getElementById(`f-${f}`).classList.add('active');
+            renderList();
+            tg.HapticFeedback.impactOccurred('light');
         }
 
         function switchTab(view) {
@@ -134,10 +158,54 @@
 
         function setCanal(tipo) {
             canal = tipo;
-            const btnTg = document.getElementById('btn-tg');
-            const btnWa = document.getElementById('btn-wa');
-            btnTg.className = tipo === 'tg' ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white shadow-lg uppercase' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase';
-            btnWa.className = tipo === 'wa' ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white shadow-lg uppercase' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase';
+            document.getElementById('btn-tg').className = tipo === 'tg' ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase';
+            document.getElementById('btn-wa').className = tipo === 'wa' ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase';
+        }
+
+        function renderList() {
+            const cont = document.getElementById('contenedor-mensajes');
+            const btnMore = document.getElementById('btn-more');
+
+            // Aplicar Filtro
+            let filtrados = mensajes.filter(m => filtroActual === 'all' || m.canal === filtroActual);
+
+            // Ordenar por fecha (más cercanos primero)
+            filtrados.sort((a, b) => new Date(a.fec) - new Date(b.fec));
+
+            // Cortar para "paginación"
+            const visible = filtrados.slice(0, itemsAMostrar);
+
+            if (filtrados.length === 0) {
+                cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold">No hay mensajes.</div>';
+                btnMore.classList.add('hidden');
+                return;
+            }
+
+            cont.innerHTML = visible.map(m => `
+                <div class="msg-card p-6 rounded-[2rem] space-y-3 animate-in fade-in duration-500">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
+                        <div class="flex gap-4">
+                            <button onclick="editar(${m.id})" class="text-lg">✏️</button>
+                            <button onclick="eliminar(${m.id})" class="text-lg text-red-500/80">🗑️</button>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-black text-white tracking-tight">${m.tel}</h3>
+                    <p class="text-gray-300 text-sm leading-relaxed">${m.msg}</p>
+                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 flex justify-between">
+                        <span class="text-white">${m.fec.replace('T', ' — ')}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Mostrar u ocultar botón "Cargar más"
+            btnMore.classList.toggle('hidden', filtrados.length <= itemsAMostrar);
+        }
+
+        function cargarMas() {
+            itemsAMostrar += 5;
+            renderList();
+            tg.HapticFeedback.impactOccurred('light');
         }
 
         function guardarRegistro() {
@@ -145,22 +213,8 @@
             const msg = document.getElementById('mensaje').value.trim();
             const fecStr = document.getElementById('fecha').value;
             const editId = document.getElementById('edit-id').value;
-            const nuevaFecha = new Date(fecStr);
-            const ahora = new Date();
 
             if (!/^\d{10}$/.test(tel)) return tg.showAlert("⚠️ Número inválido.");
-            if (!msg) return tg.showAlert("⚠️ Escribe un mensaje.");
-            if ((nuevaFecha - ahora) < (60 * 60 * 1000)) return tg.showAlert("⚠️ Mínimo 1 hora a futuro.");
-
-            const unaHoraEnMs = 60 * 60 * 1000;
-            const conflicto = mensajes.find(m =>
-                m.tel === tel && m.id != editId && Math.abs(new Date(m.fec) - nuevaFecha) < unaHoraEnMs
-            );
-
-            if (conflicto) {
-                tg.HapticFeedback.notificationOccurred('error');
-                return tg.showAlert(`⚠️ Spam detectado. Debes dejar al menos 1 hora de diferencia para este número.`);
-            }
 
             if (editId) {
                 const idx = mensajes.findIndex(m => m.id == editId);
@@ -170,43 +224,16 @@
             }
 
             localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-            tg.HapticFeedback.notificationOccurred('success');
             limpiarForm();
             switchTab('list');
         }
 
-        function renderList() {
-            const cont = document.getElementById('contenedor-mensajes');
-            if (mensajes.length === 0) {
-                cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold">No hay mensajes agendados.</div>';
-                return;
-            }
-            cont.innerHTML = mensajes.map(m => `
-                <div class="msg-card p-6 rounded-[2rem] space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
-                        <div class="flex gap-4">
-                            <button onclick="editar(${m.id})" class="text-lg">✏️</button>
-                            <button onclick="eliminar(${m.id})" class="text-lg text-red-500/80">🗑️</button>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-black text-white tracking-tight">${m.tel}</h3>
-                    <p class="text-gray-300 text-sm leading-relaxed">${m.msg}</p>
-                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 flex justify-between">
-                        <span>📅 FECHA</span>
-                        <span class="text-white">${m.fec.replace('T', ' — ')}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
         function eliminar(id) {
-            tg.showConfirm("¿Eliminar este recordatorio?", (c) => {
+            tg.showConfirm("¿Eliminar?", (c) => {
                 if (c) {
                     mensajes = mensajes.filter(m => m.id !== id);
                     localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
                     renderList();
-                    tg.HapticFeedback.notificationOccurred('warning');
                 }
             });
         }
@@ -217,18 +244,16 @@
             document.getElementById('mensaje').value = m.msg;
             document.getElementById('fecha').value = m.fec;
             document.getElementById('edit-id').value = m.id;
-            updateCharCount(document.getElementById('mensaje'));
             setCanal(m.canal);
             switchTab('form');
-            document.getElementById('btnMain').innerText = "ACTUALIZAR REGISTRO";
+            document.getElementById('btnMain').innerText = "Actualizar";
         }
 
         function limpiarForm() {
             document.getElementById('telefono').value = '';
             document.getElementById('mensaje').value = '';
             document.getElementById('edit-id').value = '';
-            document.getElementById('char-count').innerText = "0 / 500";
-            document.getElementById('btnMain').innerText = "AGENDAR RECORDATORIO";
+            document.getElementById('btnMain').innerText = "Agendar Recordatorio";
             const d = new Date(); d.setHours(d.getHours() + 1);
             document.getElementById('fecha').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         }

@@ -38,6 +38,11 @@
         .msg-card {
             background: rgba(30, 41, 59, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .msg-card:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -45,16 +50,19 @@
 <body class="p-4 min-h-screen">
 
     <div class="max-w-md mx-auto space-y-4">
+        <!-- HEADER -->
         <div class="text-center pt-4 mb-2">
-            <h1 class="text-3xl font-black">Maiba<span class="text-green-500">Sync</span></h1>
-            <p class="text-[9px] text-gray-500 tracking-[0.3em] font-bold uppercase">Anti-Spam Protected</p>
+            <h1 class="text-3xl font-black italic tracking-tighter">Maiba<span
+                    class="text-green-500 text-4xl">Sync</span></h1>
+            <p class="text-[10px] text-gray-500 tracking-[0.4em] font-bold uppercase mt-1">Anti-Spam Protected</p>
         </div>
 
+        <!-- TABS -->
         <div class="flex border-b border-gray-800 mb-6">
             <button onclick="switchTab('form')" id="tab-form"
-                class="flex-1 py-3 font-bold text-xs tab-active">PROGRAMAR</button>
-            <button onclick="switchTab('list')" id="tab-list" class="flex-1 py-3 font-bold text-xs text-gray-500">MIS
-                MENSAJES</button>
+                class="flex-1 py-4 font-black text-xs tracking-widest tab-active">PROGRAMAR</button>
+            <button onclick="switchTab('list')" id="tab-list"
+                class="flex-1 py-4 font-black text-xs tracking-widest text-gray-500">MIS MENSAJES</button>
         </div>
 
         <!-- VISTA FORMULARIO -->
@@ -63,42 +71,44 @@
 
             <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 <button onclick="setCanal('tg')" id="btn-tg"
-                    class="flex-1 py-2 rounded-lg text-[10px] font-bold bg-green-500 text-white transition-all">TELEGRAM</button>
+                    class="flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white transition-all uppercase">Telegram</button>
                 <button onclick="setCanal('wa')" id="btn-wa"
-                    class="flex-1 py-2 rounded-lg text-[10px] font-bold text-gray-500 transition-all">WHATSAPP</button>
+                    class="flex-1 py-3 rounded-lg text-xs font-black text-gray-500 transition-all uppercase">WhatsApp</button>
             </div>
 
             <div class="space-y-1">
                 <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Teléfono Destino</label>
                 <input type="tel" id="telefono" placeholder="6441234567" maxlength="10"
-                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none">
+                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none text-lg font-bold">
             </div>
 
             <div class="space-y-1">
                 <div class="flex justify-between items-center px-1">
                     <label class="text-[10px] font-black text-gray-500 uppercase">Mensaje</label>
-                    <span id="char-count" class="text-[9px] text-gray-500">0 / 500</span>
+                    <span id="char-count" class="text-[10px] font-mono text-gray-500">0 / 500</span>
                 </div>
                 <textarea id="mensaje" rows="3" maxlength="500" placeholder="¿Qué quieres decir?"
                     oninput="updateCharCount(this)"
-                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none resize-none"></textarea>
+                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none resize-none text-base"></textarea>
             </div>
 
             <div class="space-y-1">
                 <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha y Hora</label>
                 <input type="datetime-local" id="fecha"
-                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none">
+                    class="input-boutique w-full p-4 rounded-2xl text-white outline-none text-base">
             </div>
 
             <button onclick="guardarRegistro()" id="btnMain"
-                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all">
+                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition-all shadow-xl">
                 Agendar Recordatorio
             </button>
         </div>
 
         <!-- VISTA LISTADO -->
         <div id="view-list" class="hidden space-y-4">
-            <div id="contenedor-mensajes" class="space-y-3"></div>
+            <div id="contenedor-mensajes" class="space-y-4">
+                <!-- Inyección dinámica -->
+            </div>
         </div>
     </div>
 
@@ -109,8 +119,8 @@
 
         function updateCharCount(el) {
             document.getElementById('char-count').innerText = `${el.value.length} / 500`;
-            if (el.value.length >= 450) document.getElementById('char-count').classList.add('text-orange-500');
-            else document.getElementById('char-count').classList.remove('text-orange-500');
+            if (el.value.length >= 450) document.getElementById('char-count').classList.replace('text-gray-500', 'text-orange-500');
+            else document.getElementById('char-count').classList.replace('text-orange-500', 'text-gray-500');
         }
 
         function switchTab(view) {
@@ -119,13 +129,15 @@
             document.getElementById('tab-form').classList.toggle('tab-active', view === 'form');
             document.getElementById('tab-list').classList.toggle('tab-active', view === 'list');
             if (view === 'list') renderList();
-            tg.HapticFeedback.impactOccurred('light');
+            tg.HapticFeedback.impactOccurred('medium');
         }
 
         function setCanal(tipo) {
             canal = tipo;
-            document.getElementById('btn-tg').className = tipo === 'tg' ? 'flex-1 py-2 rounded-lg text-[10px] font-bold bg-green-500 text-white shadow-lg' : 'flex-1 py-2 rounded-lg text-[10px] font-bold text-gray-500';
-            document.getElementById('btn-wa').className = tipo === 'wa' ? 'flex-1 py-2 rounded-lg text-[10px] font-bold bg-green-500 text-white shadow-lg' : 'flex-1 py-2 rounded-lg text-[10px] font-bold text-gray-500';
+            const btnTg = document.getElementById('btn-tg');
+            const btnWa = document.getElementById('btn-wa');
+            btnTg.className = tipo === 'tg' ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white shadow-lg uppercase' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase';
+            btnWa.className = tipo === 'wa' ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white shadow-lg uppercase' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase';
         }
 
         function guardarRegistro() {
@@ -136,25 +148,20 @@
             const nuevaFecha = new Date(fecStr);
             const ahora = new Date();
 
-            // 1. Validaciones básicas
-            if (!/^\d{10}$/.test(tel)) return tg.showAlert("⚠️ Número inválido (10 dígitos).");
+            if (!/^\d{10}$/.test(tel)) return tg.showAlert("⚠️ Número inválido.");
             if (!msg) return tg.showAlert("⚠️ Escribe un mensaje.");
             if ((nuevaFecha - ahora) < (60 * 60 * 1000)) return tg.showAlert("⚠️ Mínimo 1 hora a futuro.");
 
-            // 2. VALIDACIÓN ANTISPAM (Límite 1 hora entre mensajes al mismo número)
             const unaHoraEnMs = 60 * 60 * 1000;
             const conflicto = mensajes.find(m =>
-                m.tel === tel &&
-                m.id != editId &&
-                Math.abs(new Date(m.fec) - nuevaFecha) < unaHoraEnMs
+                m.tel === tel && m.id != editId && Math.abs(new Date(m.fec) - nuevaFecha) < unaHoraEnMs
             );
 
             if (conflicto) {
                 tg.HapticFeedback.notificationOccurred('error');
-                return tg.showAlert(`⚠️ Spam detectado. Ya hay un mensaje para ${tel} cerca de esa hora. Debes dejar al menos 1 hora de diferencia.`);
+                return tg.showAlert(`⚠️ Spam detectado. Debes dejar al menos 1 hora de diferencia para este número.`);
             }
 
-            // 3. Guardar
             if (editId) {
                 const idx = mensajes.findIndex(m => m.id == editId);
                 mensajes[idx] = { id: editId, tel, msg, fec: fecStr, canal };
@@ -171,31 +178,35 @@
         function renderList() {
             const cont = document.getElementById('contenedor-mensajes');
             if (mensajes.length === 0) {
-                cont.innerHTML = '<div class="text-center py-20 text-gray-600">No hay mensajes.</div>';
+                cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold">No hay mensajes agendados.</div>';
                 return;
             }
             cont.innerHTML = mensajes.map(m => `
-                <div class="msg-card p-5 rounded-[2rem] space-y-2">
+                <div class="msg-card p-6 rounded-[2rem] space-y-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-[9px] font-black text-green-400 uppercase">${m.canal}</span>
-                        <div class="flex gap-3">
-                            <button onclick="editar(${m.id})" class="text-xs">✏️</button>
-                            <button onclick="eliminar(${m.id})" class="text-xs text-red-400">🗑️</button>
+                        <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
+                        <div class="flex gap-4">
+                            <button onclick="editar(${m.id})" class="text-lg">✏️</button>
+                            <button onclick="eliminar(${m.id})" class="text-lg text-red-500/80">🗑️</button>
                         </div>
                     </div>
-                    <h3 class="font-bold">${m.tel}</h3>
-                    <p class="text-gray-400 text-xs">${m.msg}</p>
-                    <div class="text-[9px] text-gray-500 font-mono italic pt-2 border-t border-white/5">⏰ ${m.fec.replace('T', ' ')}</div>
+                    <h3 class="text-xl font-black text-white tracking-tight">${m.tel}</h3>
+                    <p class="text-gray-300 text-sm leading-relaxed">${m.msg}</p>
+                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 flex justify-between">
+                        <span>📅 FECHA</span>
+                        <span class="text-white">${m.fec.replace('T', ' — ')}</span>
+                    </div>
                 </div>
             `).join('');
         }
 
         function eliminar(id) {
-            tg.showConfirm("¿Eliminar recordatorio?", (c) => {
+            tg.showConfirm("¿Eliminar este recordatorio?", (c) => {
                 if (c) {
                     mensajes = mensajes.filter(m => m.id !== id);
                     localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
                     renderList();
+                    tg.HapticFeedback.notificationOccurred('warning');
                 }
             });
         }

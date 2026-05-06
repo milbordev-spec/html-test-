@@ -258,29 +258,37 @@
 
         // LIMPIAR TODO - LA FUNCIÓN QUE FINALMENTE FUNCIONA
         function resetearApp() {
-            // Limpiar inputs
-            document.getElementById('lote').value = '';
-            document.getElementById('cantidad').value = '';
-            document.getElementById('fechaCaducidad').value = '';
-            document.getElementById('nombreProducto').value = '';
-            document.getElementById('marcaProducto').value = '';
-            document.getElementById('codigoManual').value = '';
-            // Ocultar secciones
+            // 1. Limpiar todos los inputs de texto y datos
+            const inputs = ['lote', 'cantidad', 'fechaCaducidad', 'nombreProducto', 'marcaProducto', 'codigoManual'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
+            // 2. Resetear la interfaz visual (ocultar/mostrar secciones)
             document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
-            document.getElementById('mensajeInicial').classList.remove('hidden');
             document.getElementById('formNuevoProducto').classList.add('hidden');
             document.getElementById('formLote').classList.add('hidden');
-            document.getElementById('listaDeLotes').innerHTML = '';
-            // Detener escáner
-            if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
             document.getElementById('scannerContainer').classList.add('hidden');
-            // Resetear variables
+            document.getElementById('mensajeInicial').classList.remove('hidden');
+
+            // 3. Limpiar contenedores de texto dinámico
+            document.getElementById('codigoMostrado').textContent = '';
+            document.getElementById('listaDeLotes').innerHTML = '';
+
+            // 4. Detener el escáner si está activo
+            if (html5QrCode) {
+                html5QrCode.stop().catch(err => console.log("Escáner ya estaba detenido"));
+            }
+
+            // 5. Resetear variables de control
             currentProductoId = null;
             currentCodigo = null;
-            actualizarContador();
-            tg.showAlert('✅ Todo limpiado. Puedes escanear otro producto.');
-        }
 
+            // 6. Feedback táctil (muy estilo Telegram)
+            tg.HapticFeedback.notificationOccurred('success');
+            actualizarContador();
+        }
         // ESCÁNER
         async function startScanner() {
             document.getElementById('scannerContainer').classList.remove('hidden');
@@ -366,12 +374,10 @@
 
         // ========== BOTÓN FINALIZAR - AHORA SÍ FUNCIONA ==========
         document.getElementById('finalizarProductoBtn').onclick = function () {
-            tg.showPopup({
-                title: '🏁 Finalizar',
-                message: '¿Terminaste con este producto?',
-                buttons: [{ type: 'cancel', text: 'Seguir' }, { type: 'ok', text: 'Finalizar' }]
-            }).then(confirmacion => {
-                if (confirmacion === 'ok') resetearApp();
+            tg.showConfirm('¿Terminaste con este producto?', (confirmed) => {
+                if (confirmed) {
+                    resetearApp();
+                }
             });
         };
 

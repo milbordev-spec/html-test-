@@ -161,7 +161,7 @@
             </div>
 
             <div class="space-y-1">
-                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha (Permitido 19:00 -
+                <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Fecha (Permitido 07:00 -
                     21:00)</label>
                 <input type="datetime-local" id="fecha"
                     class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base">
@@ -293,9 +293,9 @@
             const hora = fechaNueva.getHours();
             const soloFecha = fechaNueva.toISOString().split('T')[0];
 
-            // REGLA 1: Horario restringido (19:00 - 21:00)
-            if (hora < 19 || hora >= 21) {
-                return tg.showAlert("⚠️ Horario denegado. Solo se permite de 19:00 a 21:00 hrs.");
+            // REGLA 1: Horario restringido (07:00 AM - 09:00 PM)
+            if (hora < 7 || hora >= 21) {
+                return tg.showAlert("⚠️ Horario denegado. Solo se permite de 07:00 a 21:00 hrs.");
             }
 
             // REGLA 2: Mínimo 1 hora de diferencia entre envíos
@@ -356,7 +356,10 @@
             document.getElementById('edit-id').value = '';
             document.getElementById('char-count').innerText = "0 / 500";
             document.getElementById('btnMain').innerText = "Agendar Recordatorio";
-            const d = new Date(); d.setHours(19, 0, 0, 0); // Default a las 7 PM
+
+            // Default a las 9 AM del día actual
+            const d = new Date();
+            d.setHours(9, 0, 0, 0);
             document.getElementById('fecha').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         }
 

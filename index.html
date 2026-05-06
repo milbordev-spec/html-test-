@@ -268,33 +268,62 @@
         }
         cargarDatos();
 
-        // Función para limpiar TODO y volver al inicio
+        // ========== FUNCIÓN CORREGIDA: Limpia ABSOLUTAMENTE TODO ==========
         function limpiarYVolverInicio() {
-            // Limpiar todos los campos
-            document.getElementById('lote').value = '';
-            document.getElementById('cantidad').value = '';
-            document.getElementById('fechaCaducidad').value = '';
-            document.getElementById('nombreProducto').value = '';
-            document.getElementById('marcaProducto').value = '';
-            document.getElementById('codigoManual').value = '';
+            console.log("Limpiando todo..."); // Para depuración
 
-            // Ocultar contenido y mostrar inicio
-            document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
-            document.getElementById('mensajeInicial').classList.remove('hidden');
+            // 1. Limpiar todos los campos de texto
+            const campos = ['lote', 'cantidad', 'fechaCaducidad', 'nombreProducto', 'marcaProducto', 'codigoManual'];
+            campos.forEach(campo => {
+                const elemento = document.getElementById(campo);
+                if (elemento) elemento.value = '';
+            });
 
-            // Detener escáner si está activo
+            // 2. Ocultar el contenido después de escanear
+            const contenidoEscaneo = document.getElementById('contenidoDespuesEscaneo');
+            if (contenidoEscaneo) contenidoEscaneo.classList.add('hidden');
+
+            // 3. Mostrar el mensaje inicial
+            const mensajeInicial = document.getElementById('mensajeInicial');
+            if (mensajeInicial) mensajeInicial.classList.remove('hidden');
+
+            // 4. Detener el escáner si está activo
             if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop();
+                try {
+                    html5QrCode.stop();
+                } catch (e) {
+                    console.log("Error al parar escáner:", e);
+                }
             }
-            document.getElementById('scannerContainer').classList.add('hidden');
 
-            // Resetear variables
+            // 5. Ocultar el contenedor del escáner
+            const scannerContainer = document.getElementById('scannerContainer');
+            if (scannerContainer) scannerContainer.classList.add('hidden');
+
+            // 6. Resetear variables de estado
             currentProductoId = null;
             currentCodigo = null;
 
-            // Actualizar contador
+            // 7. Limpiar el contenido de la lista de lotes
+            const listaDeLotes = document.getElementById('listaDeLotes');
+            if (listaDeLotes) listaDeLotes.innerHTML = '';
+
+            // 8. Asegurar que los formularios estén en estado inicial
+            const formNuevoProducto = document.getElementById('formNuevoProducto');
+            const formLote = document.getElementById('formLote');
+            if (formNuevoProducto) formNuevoProducto.classList.add('hidden');
+            if (formLote) formLote.classList.add('hidden');
+
+            // 9. Actualizar el contador
             actualizarContador();
+
+            console.log("Limpieza completada. Estado actual:", {
+                currentProductoId,
+                currentCodigo,
+                productosDB: productosDB.length
+            });
         }
+        // ================================================================
 
         // Iniciar escáner con cámara REAL
         async function startScanner() {
@@ -415,7 +444,6 @@
                                     <span class="font-mono font-bold text-white">${escapeHtml(lote.lote)}</span>
                                     ${estadoBadge}
                                 </div>
-                                <!-- CAMBIADO: ahora cantidad y fecha en COLUMNA (vertical) -->
                                 <div class="space-y-1 text-sm">
                                     <div class="flex items-center gap-2">
                                         <span>📊</span>
@@ -551,6 +579,8 @@
 
         // Botón FINALIZAR - LIMPIA TODO COMPLETAMENTE
         document.getElementById('finalizarProductoBtn').onclick = () => {
+            console.log("Botón Finalizar presionado"); // Para depuración
+
             tg.showPopup({
                 title: '🏁 Finalizar',
                 message: '¿Terminaste de agregar lotes para este producto?',
@@ -559,6 +589,7 @@
                     { type: 'ok', text: 'Finalizar' }
                 ]
             }).then(confirmacion => {
+                console.log("Confirmación:", confirmacion); // Para depuración
                 if (confirmacion === 'ok') {
                     limpiarYVolverInicio();
                     tg.showAlert('✅ Sesión finalizada. ¡Puedes escanear otro producto!');

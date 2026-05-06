@@ -3,13 +3,32 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Control Caducidades</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* Ocultar el input file para que no se vea */
+        #scanner-input {
+            position: fixed;
+            top: -100px;
+            left: -100px;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+        }
+
         .btn-scanner {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-scanner:active {
+            transform: scale(0.97);
+        }
+
+        .btn-finalizar {
+            background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
         }
 
         .fade-in {
@@ -27,91 +46,159 @@
                 transform: translateY(0);
             }
         }
+
+        /* Card hover effect */
+        .product-card {
+            transition: all 0.2s ease;
+        }
+
+        .product-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Scrollbar bonita */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
     </style>
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 transition-colors">
-    <div class="max-w-md mx-auto p-4 min-h-screen pb-24">
+<body
+    class="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors min-h-screen">
+    <div class="max-w-md mx-auto p-4 pb-24">
 
-        <!-- Header -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 mb-4 fade-in">
+        <!-- Header con efecto glass -->
+        <div
+            class="backdrop-blur-lg bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-xl p-5 mb-4 fade-in border border-gray-200 dark:border-gray-700">
             <div class="flex items-center gap-3">
                 <div
-                    class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl">
-                    📦</div>
+                    class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl shadow-lg">
+                    📦
+                </div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">Control Caducidades</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Gestión de lotes por código de barras</p>
+                    <h1
+                        class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                        Control Caducidades</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Escanea código de barras (EAN-13)</p>
                 </div>
             </div>
         </div>
 
-        <!-- Escáner -->
+        <!-- Escáner con diseño mejorado -->
         <button id="scanBtn"
-            class="btn-scanner w-full py-4 rounded-2xl text-white font-bold text-lg shadow-lg mb-4 transition-transform active:scale-95">
-            📷 ESCANEAR CÓDIGO DE BARRAS
+            class="btn-scanner w-full py-5 rounded-2xl text-white font-bold text-lg shadow-xl mb-4 flex items-center justify-center gap-3 transition-transform active:scale-95">
+            <span class="text-2xl">📷</span>
+            ESCANEAR CÓDIGO DE BARRAS
         </button>
 
-        <input type="text" id="codigoManual" placeholder="✏️ O escribe el código manualmente"
-            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl mb-4 text-center text-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+        <div class="relative mb-4">
+            <input type="text" id="codigoManual" placeholder="✏️ O escribe el código manualmente"
+                class="w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-center text-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+        </div>
 
         <!-- Contenido después de escanear -->
         <div id="contenidoDespuesEscaneo" class="hidden">
 
-            <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded-lg mb-4">
-                <p class="text-xs text-gray-600 dark:text-gray-400">Código escaneado:</p>
-                <p class="font-mono font-bold text-blue-700 dark:text-blue-300" id="codigoMostrado"></p>
+            <!-- Info del código con diseño bonito -->
+            <div
+                class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-l-4 border-blue-500 p-4 rounded-xl mb-4 fade-in">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🔖</span>
+                    <div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">Código escaneado</p>
+                        <p class="font-mono font-bold text-blue-700 dark:text-blue-300 text-lg" id="codigoMostrado"></p>
+                    </div>
+                </div>
             </div>
 
             <!-- Producto NUEVO -->
-            <div id="formNuevoProducto" class="hidden bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg mb-4 fade-in">
-                <h2 class="font-bold text-lg text-gray-800 dark:text-white mb-3">🆕 Producto nuevo</h2>
+            <div id="formNuevoProducto" class="hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in">
+                <div class="text-center mb-4">
+                    <span class="text-5xl">🆕</span>
+                    <h2 class="font-bold text-xl text-gray-800 dark:text-white mt-2">Producto nuevo</h2>
+                </div>
                 <div class="space-y-3">
                     <input type="text" id="nombreProducto" placeholder="Nombre del producto *"
-                        class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                    <input type="text" id="marcaProducto" placeholder="Marca"
-                        class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-green-500">
+                    <input type="text" id="marcaProducto" placeholder="Marca (opcional)"
+                        class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-green-500">
                     <button id="guardarNuevoProductoBtn"
-                        class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-semibold">
+                        class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all shadow-md">
                         ✅ Guardar producto
                     </button>
                 </div>
             </div>
 
             <!-- Producto EXISTENTE + Gestión de lotes -->
-            <div id="formLote" class="hidden bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg mb-4 fade-in">
-                <div class="mb-4 pb-3 border-b-2 border-gray-200 dark:border-gray-700">
-                    <h2 class="font-bold text-xl text-gray-800 dark:text-white" id="productoNombre"></h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400" id="productoMarca"></p>
+            <div id="formLote" class="hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in">
+                <div class="text-center mb-4 pb-3 border-b-2 border-gray-200 dark:border-gray-700">
+                    <span class="text-4xl">📦</span>
+                    <h2 class="font-bold text-2xl text-gray-800 dark:text-white" id="productoNombre"></h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" id="productoMarca"></p>
                 </div>
 
-                <div id="lotesContainer">
-                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">📋 Lotes registrados:</h3>
-                    <div id="listaDeLotes" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                <!-- Lista de lotes con diseño de tarjetas -->
+                <div id="lotesContainer" class="mb-4">
+                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <span>📋</span> Lotes registrados:
+                    </h3>
+                    <div id="listaDeLotes" class="space-y-2 max-h-64 overflow-y-auto"></div>
                 </div>
 
-                <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4 mt-4">
-                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">➕ Agregar nuevo lote</h3>
+                <!-- Formulario agregar lote -->
+                <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4">
+                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                        <span>➕</span> Agregar nuevo lote
+                    </h3>
                     <div class="space-y-3">
                         <input type="text" id="lote" placeholder="Número de lote *"
-                            class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
                         <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
-                            class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
                         <input type="date" id="fechaCaducidad"
-                            class="w-full p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                        <button id="guardarLoteBtn"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold">
-                            💾 Guardar lote
-                        </button>
+                            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+
+                        <div class="flex gap-3">
+                            <button id="guardarLoteBtn"
+                                class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-xl font-semibold transition-all shadow-md">
+                                💾 Guardar lote
+                            </button>
+                            <button id="finalizarProductoBtn"
+                                class="btn-finalizar flex-1 text-white py-3 rounded-xl font-semibold transition-all shadow-md flex items-center justify-center gap-2">
+                                🏁 Finalizar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Mensaje inicial -->
-        <div id="mensajeInicial" class="text-center py-12">
-            <div class="text-6xl mb-4">🔍</div>
-            <p class="text-gray-500 dark:text-gray-400">Escanea un código de barras<br>para comenzar</p>
+        <!-- Mensaje inicial con diseño bonito -->
+        <div id="mensajeInicial" class="text-center py-16 fade-in">
+            <div
+                class="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-6">
+                <span class="text-6xl">🔍</span>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 text-lg">Escanea un código de barras</p>
+            <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">para comenzar</p>
         </div>
 
     </div>
@@ -119,15 +206,18 @@
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+        tg.enableClosingConfirmation();
 
         if (tg.colorScheme === 'dark') {
             document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
         }
 
         let currentProductoId = null;
         let currentCodigo = null;
 
-        // ========== DATOS SIMULADOS (funciona sin backend) ==========
+        // ========== DATOS SIMULADOS ==========
         let productosDB = [
             {
                 id: 1, codigo: "7501031321307", nombre: "Leche Entera Lala", marca: "Lala", lotes: [
@@ -143,38 +233,48 @@
         ];
         let nextProductoId = 3;
         let nextLoteId = 300;
-        // ============================================================
+        // =====================================
 
-        // Escáner
+        // Escáner DIRECTO (sin galería)
         const scannerInput = document.createElement('input');
+        scannerInput.id = 'scanner-input';
         scannerInput.type = 'file';
         scannerInput.accept = 'image/*';
-        scannerInput.capture = 'environment';
+        scannerInput.capture = 'environment'; // Esto fuerza la cámara trasera DIRECTAMENTE
         scannerInput.style.display = 'none';
         document.body.appendChild(scannerInput);
 
-        document.getElementById('scanBtn').onclick = () => scannerInput.click();
+        document.getElementById('scanBtn').onclick = () => {
+            scannerInput.click();
+        };
 
         scannerInput.onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
+            tg.showPopup({
+                title: '📷 Procesando',
+                message: 'Leyendo código de barras...',
+                buttons: [{ type: 'ok' }]
+            });
+
             if ('BarcodeDetector' in window) {
                 try {
-                    const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'code_128'] });
+                    const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8'] }); // SOLO EAN
                     const bitmap = await createImageBitmap(file);
                     const barcodes = await detector.detect(bitmap);
                     if (barcodes.length > 0) {
-                        document.getElementById('codigoManual').value = barcodes[0].rawValue;
-                        await procesarCodigo(barcodes[0].rawValue);
+                        const code = barcodes[0].rawValue;
+                        document.getElementById('codigoManual').value = code;
+                        await procesarCodigo(code);
                     } else {
-                        tg.showAlert('No se detectó código de barras');
+                        tg.showAlert('❌ No se detectó código de barras EAN-13');
                     }
                 } catch (error) {
-                    tg.showAlert('Error al leer el código');
+                    tg.showAlert('Error al leer el código: ' + error.message);
                 }
             } else {
-                tg.showAlert('Usa entrada manual');
+                tg.showAlert('⚠️ Tu navegador no soporta escáner nativo.\nUsa entrada manual.');
             }
             scannerInput.value = '';
         };
@@ -189,7 +289,6 @@
             document.getElementById('contenidoDespuesEscaneo').classList.remove('hidden');
             document.getElementById('mensajeInicial').classList.add('hidden');
 
-            // Buscar producto en datos simulados
             const producto = productosDB.find(p => p.codigo === codigo);
 
             if (producto) {
@@ -209,7 +308,7 @@
         function renderizarLotes(lotes) {
             const container = document.getElementById('listaDeLotes');
             if (!lotes || lotes.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No hay lotes registrados</p>';
+                container.innerHTML = '<div class="text-center py-6 text-gray-500 dark:text-gray-400">📭 No hay lotes registrados</div>';
                 return;
             }
 
@@ -218,34 +317,43 @@
                 const hoy = new Date();
                 const diffDays = Math.ceil((fecha - hoy) / (1000 * 60 * 60 * 24));
                 let colorClass = 'text-green-600 dark:text-green-400';
-                if (diffDays < 0) colorClass = 'text-red-600 dark:text-red-400';
-                else if (diffDays < 30) colorClass = 'text-orange-500 dark:text-orange-400';
+                let bgClass = 'bg-green-50 dark:bg-green-900/20';
+                if (diffDays < 0) {
+                    colorClass = 'text-red-600 dark:text-red-400';
+                    bgClass = 'bg-red-50 dark:bg-red-900/20';
+                } else if (diffDays < 30) {
+                    colorClass = 'text-orange-500 dark:text-orange-400';
+                    bgClass = 'bg-orange-50 dark:bg-orange-900/20';
+                }
 
                 return `
-                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600" data-lote-id="${lote.id}">
+                    <div class="${bgClass} p-3 rounded-xl border border-gray-200 dark:border-gray-700 transition-all" data-lote-id="${lote.id}">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="font-mono font-bold text-gray-800 dark:text-white">🏷️ ${escapeHtml(lote.lote)}</span>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-lg">🏷️</span>
+                                    <span class="font-mono font-bold text-gray-800 dark:text-white">${escapeHtml(lote.lote)}</span>
                                 </div>
-                                <div class="flex justify-between items-center mt-2">
-                                    <div>
-                                        <span class="text-sm text-gray-600 dark:text-gray-300">📊 Cantidad:</span>
-                                        <span class="font-semibold ml-1">${lote.cantidad}</span>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div class="flex items-center gap-1">
+                                        <span>📊</span>
+                                        <span class="text-gray-600 dark:text-gray-300">Cantidad:</span>
+                                        <span class="font-semibold">${lote.cantidad}</span>
                                     </div>
-                                    <div>
-                                        <span class="text-sm text-gray-600 dark:text-gray-300">📅 Caduca:</span>
-                                        <span class="font-semibold ml-1 ${colorClass}">${lote.fecha_caducidad}</span>
+                                    <div class="flex items-center gap-1">
+                                        <span>📅</span>
+                                        <span class="text-gray-600 dark:text-gray-300">Caduca:</span>
+                                        <span class="font-semibold ${colorClass}">${lote.fecha_caducidad}</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex gap-2 ml-2">
                                 <button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" 
-                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg text-sm">
+                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm transition-all">
                                     ✏️
                                 </button>
                                 <button onclick="eliminarLote(${lote.id})" 
-                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm">
+                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm transition-all">
                                     🗑️
                                 </button>
                             </div>
@@ -268,7 +376,7 @@
                     const producto = productosDB.find(p => p.id === currentProductoId);
                     if (producto) {
                         producto.lotes = producto.lotes.filter(l => l.id !== loteId);
-                        tg.showAlert('✅ Lote eliminado (simulado)');
+                        tg.showAlert('✅ Lote eliminado');
                         renderizarLotes(producto.lotes);
                     }
                 }
@@ -276,18 +384,37 @@
         };
 
         window.editarCantidad = (loteId, cantidadActual) => {
-            const nuevaCantidad = prompt('Nueva cantidad:', cantidadActual);
-            if (nuevaCantidad && !isNaN(parseFloat(nuevaCantidad))) {
-                const producto = productosDB.find(p => p.id === currentProductoId);
-                if (producto) {
-                    const lote = producto.lotes.find(l => l.id === loteId);
-                    if (lote) {
-                        lote.cantidad = parseFloat(nuevaCantidad);
-                        tg.showAlert('✅ Cantidad actualizada (simulado)');
-                        renderizarLotes(producto.lotes);
+            tg.showPopup({
+                title: '✏️ Editar cantidad',
+                message: `Cantidad actual: ${cantidadActual}`,
+                buttons: [
+                    { type: 'cancel', text: 'Cancelar' },
+                    { type: 'ok', text: 'Guardar' }
+                ]
+            }).then(async () => {
+                const cantidad = await new Promise(resolve => {
+                    tg.showPopup({
+                        title: 'Nueva cantidad',
+                        message: 'Ingresa la nueva cantidad:',
+                        buttons: [{ type: 'ok' }]
+                    });
+                    // Simplificado: usamos prompt por ahora
+                    const result = prompt('Nueva cantidad:', cantidadActual);
+                    resolve(result);
+                });
+
+                if (cantidad && !isNaN(parseFloat(cantidad))) {
+                    const producto = productosDB.find(p => p.id === currentProductoId);
+                    if (producto) {
+                        const lote = producto.lotes.find(l => l.id === loteId);
+                        if (lote) {
+                            lote.cantidad = parseFloat(cantidad);
+                            tg.showAlert('✅ Cantidad actualizada');
+                            renderizarLotes(producto.lotes);
+                        }
                     }
                 }
-            }
+            });
         };
 
         document.getElementById('guardarNuevoProductoBtn').onclick = () => {
@@ -295,7 +422,7 @@
             const marca = document.getElementById('marcaProducto').value.trim();
 
             if (!nombre) {
-                tg.showAlert('El nombre es obligatorio');
+                tg.showAlert('❌ El nombre del producto es obligatorio');
                 return;
             }
 
@@ -309,13 +436,13 @@
             productosDB.push(nuevoProducto);
             currentProductoId = nuevoProducto.id;
 
-            tg.showAlert('✅ Producto guardado (simulado)');
+            tg.showAlert('✅ Producto guardado correctamente');
 
             document.getElementById('formNuevoProducto').classList.add('hidden');
             document.getElementById('formLote').classList.remove('hidden');
             document.getElementById('productoNombre').textContent = nombre;
             document.getElementById('productoMarca').textContent = marca ? `Marca: ${marca}` : '';
-            document.getElementById('listaDeLotes').innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No hay lotes registrados</p>';
+            document.getElementById('listaDeLotes').innerHTML = '<div class="text-center py-6 text-gray-500 dark:text-gray-400">📭 No hay lotes registrados</div>';
 
             document.getElementById('nombreProducto').value = '';
             document.getElementById('marcaProducto').value = '';
@@ -327,7 +454,7 @@
             const fecha = document.getElementById('fechaCaducidad').value;
 
             if (!lote || !cantidad || !fecha) {
-                tg.showAlert('Lote, cantidad y fecha son obligatorios');
+                tg.showAlert('❌ Lote, cantidad y fecha son obligatorios');
                 return;
             }
 
@@ -340,13 +467,40 @@
                     fecha_caducidad: fecha
                 };
                 producto.lotes.push(nuevoLote);
-                tg.showAlert('✅ Lote guardado (simulado)');
+                tg.showAlert('✅ Lote guardado correctamente');
 
                 document.getElementById('lote').value = '';
                 document.getElementById('cantidad').value = '';
                 document.getElementById('fechaCaducidad').value = '';
                 renderizarLotes(producto.lotes);
             }
+        };
+
+        // Botón FINALIZAR - limpia el formulario y vuelve al inicio
+        document.getElementById('finalizarProductoBtn').onclick = () => {
+            tg.showPopup({
+                title: '🏁 Finalizar',
+                message: '¿Has terminado de agregar lotes para este producto?',
+                buttons: [
+                    { type: 'cancel', text: 'Seguir' },
+                    { type: 'ok', text: 'Finalizar' }
+                ]
+            }).then(confirmacion => {
+                if (confirmacion === 'ok') {
+                    // Limpiar todo y volver al inicio
+                    document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
+                    document.getElementById('mensajeInicial').classList.remove('hidden');
+                    document.getElementById('codigoManual').value = '';
+                    document.getElementById('lote').value = '';
+                    document.getElementById('cantidad').value = '';
+                    document.getElementById('fechaCaducidad').value = '';
+                    document.getElementById('nombreProducto').value = '';
+                    document.getElementById('marcaProducto').value = '';
+                    currentProductoId = null;
+                    currentCodigo = null;
+                    tg.showAlert('✅ Sesión finalizada. Puedes escanear otro producto.');
+                }
+            });
         };
 
         function escapeHtml(str) {

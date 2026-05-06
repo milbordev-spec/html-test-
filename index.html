@@ -58,7 +58,6 @@
         <!-- Contenido después de escanear -->
         <div id="contenidoDespuesEscaneo" class="hidden">
 
-            <!-- Info del código -->
             <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded-lg mb-4">
                 <p class="text-xs text-gray-600 dark:text-gray-400">Código escaneado:</p>
                 <p class="font-mono font-bold text-blue-700 dark:text-blue-300" id="codigoMostrado"></p>
@@ -86,13 +85,11 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400" id="productoMarca"></p>
                 </div>
 
-                <!-- Lista de lotes -->
                 <div id="lotesContainer">
                     <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">📋 Lotes registrados:</h3>
                     <div id="listaDeLotes" class="space-y-2 max-h-96 overflow-y-auto"></div>
                 </div>
 
-                <!-- Formulario agregar lote -->
                 <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4 mt-4">
                     <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">➕ Agregar nuevo lote</h3>
                     <div class="space-y-3">
@@ -127,15 +124,26 @@
             document.documentElement.classList.add('dark');
         }
 
-        // ========== 🔧 CONFIGURACIÓN: Cambia esta URL cuando uses ngrok ==========
-        // Cuando ejecutes ngrok, reemplaza esta URL con la que te dé ngrok
-        // Ejemplo: const API_BASE_URL = "https://abc123.ngrok.io";
-        const API_BASE_URL = "http://localhost:8083";  // Para pruebas locales
-
-        // =========================================================================
-
         let currentProductoId = null;
         let currentCodigo = null;
+
+        // ========== DATOS SIMULADOS (funciona sin backend) ==========
+        let productosDB = [
+            {
+                id: 1, codigo: "7501031321307", nombre: "Leche Entera Lala", marca: "Lala", lotes: [
+                    { id: 101, lote: "L2403A", cantidad: 12, fecha_caducidad: "2025-06-15" },
+                    { id: 102, lote: "L2405B", cantidad: 5, fecha_caducidad: "2025-01-20" }
+                ]
+            },
+            {
+                id: 2, codigo: "1234567890123", nombre: "Pan Bimbo", marca: "Bimbo", lotes: [
+                    { id: 201, lote: "P2401", cantidad: 8, fecha_caducidad: "2025-02-10" }
+                ]
+            }
+        ];
+        let nextProductoId = 3;
+        let nextLoteId = 300;
+        // ============================================================
 
         // Escáner
         const scannerInput = document.createElement('input');
@@ -166,7 +174,7 @@
                     tg.showAlert('Error al leer el código');
                 }
             } else {
-                tg.showAlert('Tu navegador no soporta escáner nativo. Usa entrada manual.');
+                tg.showAlert('Usa entrada manual');
             }
             scannerInput.value = '';
         };
@@ -181,26 +189,20 @@
             document.getElementById('contenidoDespuesEscaneo').classList.remove('hidden');
             document.getElementById('mensajeInicial').classList.add('hidden');
 
-            try {
-                // 🔧 USAR LA URL BASE CONFIGURADA
-                const response = await fetch(`${API_BASE_URL}/api/check_product?codigo=${encodeURIComponent(codigo)}`);
-                const data = await response.json();
+            // Buscar producto en datos simulados
+            const producto = productosDB.find(p => p.codigo === codigo);
 
-                if (data.exists) {
-                    currentProductoId = data.producto_id;
-                    document.getElementById('productoNombre').textContent = data.nombre;
-                    document.getElementById('productoMarca').textContent = data.marca ? `Marca: ${data.marca}` : '';
-                    document.getElementById('formNuevoProducto').classList.add('hidden');
-                    document.getElementById('formLote').classList.remove('hidden');
-                    renderizarLotes(data.lotes);
-                } else {
-                    currentProductoId = null;
-                    document.getElementById('formNuevoProducto').classList.remove('hidden');
-                    document.getElementById('formLote').classList.add('hidden');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                tg.showAlert(`Error de conexión. Asegúrate de que el bot esté corriendo en ${API_BASE_URL}`);
+            if (producto) {
+                currentProductoId = producto.id;
+                document.getElementById('productoNombre').textContent = producto.nombre;
+                document.getElementById('productoMarca').textContent = producto.marca ? `Marca: ${producto.marca}` : '';
+                document.getElementById('formNuevoProducto').classList.add('hidden');
+                document.getElementById('formLote').classList.remove('hidden');
+                renderizarLotes(producto.lotes);
+            } else {
+                currentProductoId = null;
+                document.getElementById('formNuevoProducto').classList.remove('hidden');
+                document.getElementById('formLote').classList.add('hidden');
             }
         }
 
@@ -225,12 +227,11 @@
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="font-mono font-bold text-gray-800 dark:text-white">🏷️ ${escapeHtml(lote.lote)}</span>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">ID: ${lote.id}</span>
                                 </div>
                                 <div class="flex justify-between items-center mt-2">
                                     <div>
                                         <span class="text-sm text-gray-600 dark:text-gray-300">📊 Cantidad:</span>
-                                        <span class="font-semibold ml-1" id="cantidad-${lote.id}">${lote.cantidad}</span>
+                                        <span class="font-semibold ml-1">${lote.cantidad}</span>
                                     </div>
                                     <div>
                                         <span class="text-sm text-gray-600 dark:text-gray-300">📅 Caduca:</span>
@@ -240,11 +241,11 @@
                             </div>
                             <div class="flex gap-2 ml-2">
                                 <button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" 
-                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg text-sm transition-colors">
+                                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg text-sm">
                                     ✏️
                                 </button>
                                 <button onclick="eliminarLote(${lote.id})" 
-                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm transition-colors">
+                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm">
                                     🗑️
                                 </button>
                             </div>
@@ -254,87 +255,73 @@
             }).join('');
         }
 
-        window.eliminarLote = async (loteId) => {
-            const confirmacion = await tg.showPopup({
+        window.eliminarLote = (loteId) => {
+            tg.showPopup({
                 title: '⚠️ Eliminar lote',
                 message: '¿Seguro que quieres eliminar este lote?',
                 buttons: [
                     { type: 'cancel', text: 'Cancelar' },
                     { type: 'destructive', text: 'Eliminar' }
                 ]
-            });
-
-            if (confirmacion === 'destructive') {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/delete_lote`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ lote_id: loteId })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        tg.showAlert('✅ Lote eliminado correctamente');
-                        await procesarCodigo(currentCodigo);
-                    } else {
-                        tg.showAlert('❌ Error al eliminar lote');
+            }).then(confirmacion => {
+                if (confirmacion === 'destructive') {
+                    const producto = productosDB.find(p => p.id === currentProductoId);
+                    if (producto) {
+                        producto.lotes = producto.lotes.filter(l => l.id !== loteId);
+                        tg.showAlert('✅ Lote eliminado (simulado)');
+                        renderizarLotes(producto.lotes);
                     }
-                } catch (error) {
-                    tg.showAlert('Error de conexión');
+                }
+            });
+        };
+
+        window.editarCantidad = (loteId, cantidadActual) => {
+            const nuevaCantidad = prompt('Nueva cantidad:', cantidadActual);
+            if (nuevaCantidad && !isNaN(parseFloat(nuevaCantidad))) {
+                const producto = productosDB.find(p => p.id === currentProductoId);
+                if (producto) {
+                    const lote = producto.lotes.find(l => l.id === loteId);
+                    if (lote) {
+                        lote.cantidad = parseFloat(nuevaCantidad);
+                        tg.showAlert('✅ Cantidad actualizada (simulado)');
+                        renderizarLotes(producto.lotes);
+                    }
                 }
             }
         };
 
-        window.editarCantidad = async (loteId, cantidadActual) => {
-            const cantidad = prompt('Nueva cantidad:', cantidadActual);
-            if (cantidad && !isNaN(parseFloat(cantidad))) {
-                try {
-                    await fetch(`${API_BASE_URL}/api/update_cantidad`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ lote_id: loteId, cantidad: parseFloat(cantidad) })
-                    });
-                    tg.showAlert('✅ Cantidad actualizada');
-                    await procesarCodigo(currentCodigo);
-                } catch (error) {
-                    tg.showAlert('Error al actualizar');
-                }
-            }
-        };
-
-        document.getElementById('guardarNuevoProductoBtn').onclick = async () => {
+        document.getElementById('guardarNuevoProductoBtn').onclick = () => {
             const nombre = document.getElementById('nombreProducto').value.trim();
             const marca = document.getElementById('marcaProducto').value.trim();
 
             if (!nombre) {
-                tg.showAlert('El nombre del producto es obligatorio');
+                tg.showAlert('El nombre es obligatorio');
                 return;
             }
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/save_product`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        codigo: currentCodigo,
-                        nombre: nombre,
-                        marca: marca
-                    })
-                });
-                const data = await response.json();
-                currentProductoId = data.producto_id;
-                tg.showAlert('✅ Producto guardado');
+            const nuevoProducto = {
+                id: nextProductoId++,
+                codigo: currentCodigo,
+                nombre: nombre,
+                marca: marca,
+                lotes: []
+            };
+            productosDB.push(nuevoProducto);
+            currentProductoId = nuevoProducto.id;
 
-                document.getElementById('formNuevoProducto').classList.add('hidden');
-                document.getElementById('formLote').classList.remove('hidden');
-                document.getElementById('productoNombre').textContent = nombre;
-                document.getElementById('productoMarca').textContent = marca ? `Marca: ${marca}` : '';
-                document.getElementById('listaDeLotes').innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No hay lotes registrados</p>';
-            } catch (error) {
-                tg.showAlert('Error al guardar producto');
-            }
+            tg.showAlert('✅ Producto guardado (simulado)');
+
+            document.getElementById('formNuevoProducto').classList.add('hidden');
+            document.getElementById('formLote').classList.remove('hidden');
+            document.getElementById('productoNombre').textContent = nombre;
+            document.getElementById('productoMarca').textContent = marca ? `Marca: ${marca}` : '';
+            document.getElementById('listaDeLotes').innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No hay lotes registrados</p>';
+
+            document.getElementById('nombreProducto').value = '';
+            document.getElementById('marcaProducto').value = '';
         };
 
-        document.getElementById('guardarLoteBtn').onclick = async () => {
+        document.getElementById('guardarLoteBtn').onclick = () => {
             const lote = document.getElementById('lote').value.trim();
             const cantidad = parseFloat(document.getElementById('cantidad').value);
             const fecha = document.getElementById('fechaCaducidad').value;
@@ -344,30 +331,21 @@
                 return;
             }
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/save_lote`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        producto_id: currentProductoId,
-                        lote: lote,
-                        cantidad: cantidad,
-                        fecha_caducidad: fecha
-                    })
-                });
+            const producto = productosDB.find(p => p.id === currentProductoId);
+            if (producto) {
+                const nuevoLote = {
+                    id: nextLoteId++,
+                    lote: lote,
+                    cantidad: cantidad,
+                    fecha_caducidad: fecha
+                };
+                producto.lotes.push(nuevoLote);
+                tg.showAlert('✅ Lote guardado (simulado)');
 
-                if (response.ok) {
-                    tg.showAlert('✅ Lote guardado correctamente');
-                    document.getElementById('lote').value = '';
-                    document.getElementById('cantidad').value = '';
-                    document.getElementById('fechaCaducidad').value = '';
-                    await procesarCodigo(currentCodigo);
-                } else {
-                    const error = await response.json();
-                    tg.showAlert(error.error || 'Error al guardar lote');
-                }
-            } catch (error) {
-                tg.showAlert('Error de conexión');
+                document.getElementById('lote').value = '';
+                document.getElementById('cantidad').value = '';
+                document.getElementById('fechaCaducidad').value = '';
+                renderizarLotes(producto.lotes);
             }
         };
 

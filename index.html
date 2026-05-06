@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -7,17 +7,9 @@
     <title>Control Caducidades</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Librería para escanear códigos de barras con cámara REAL -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        /* Ocultar el input file para que no se vea */
-        #scanner-input {
-            position: fixed;
-            top: -100px;
-            left: -100px;
-            opacity: 0;
-            width: 1px;
-            height: 1px;
-        }
-
         .btn-scanner {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             transition: all 0.3s ease;
@@ -47,62 +39,62 @@
             }
         }
 
-        /* Card hover effect */
-        .product-card {
-            transition: all 0.2s ease;
+        /* Ocultar el lector QR cuando no se usa */
+        #reader {
+            width: 100%;
         }
 
-        .product-card:active {
-            transform: scale(0.98);
+        #reader video {
+            width: 100%;
+            border-radius: 1rem;
+            border: 2px solid #3b82f6;
         }
 
-        /* Scrollbar bonita */
+        /* Scrollbar oscura */
         ::-webkit-scrollbar {
             width: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #e2e8f0;
+            background: #1e293b;
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
-        }
-
-        .dark ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-
-        .dark ::-webkit-scrollbar-thumb {
             background: #475569;
+            border-radius: 10px;
         }
     </style>
 </head>
 
-<body
-    class="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors min-h-screen">
+<body class="bg-gray-900 min-h-screen">
     <div class="max-w-md mx-auto p-4 pb-24">
 
-        <!-- Header con efecto glass -->
-        <div
-            class="backdrop-blur-lg bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-xl p-5 mb-4 fade-in border border-gray-200 dark:border-gray-700">
+        <!-- Header -->
+        <div class="bg-gray-800/80 rounded-2xl shadow-xl p-5 mb-4 fade-in border border-gray-700">
             <div class="flex items-center gap-3">
                 <div
                     class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl shadow-lg">
                     📦
                 </div>
                 <div>
-                    <h1
-                        class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                        Control Caducidades</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Escanea código de barras (EAN-13)</p>
+                    <h1 class="text-xl font-bold text-white">Control Caducidades</h1>
+                    <p class="text-xs text-gray-400">Escanea código de barras (EAN-13)</p>
                 </div>
             </div>
         </div>
 
-        <!-- Escáner con diseño mejorado -->
+        <!-- Escáner con cámara REAL -->
+        <div id="scannerContainer" class="hidden mb-4">
+            <div class="bg-gray-800 rounded-xl p-3 border border-gray-700">
+                <div id="reader" style="width:100%;"></div>
+                <button id="cancelScanner" class="w-full mt-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg">
+                    ❌ Cancelar escaneo
+                </button>
+            </div>
+        </div>
+
+        <!-- Botón escanear -->
         <button id="scanBtn"
             class="btn-scanner w-full py-5 rounded-2xl text-white font-bold text-lg shadow-xl mb-4 flex items-center justify-center gap-3 transition-transform active:scale-95">
             <span class="text-2xl">📷</span>
@@ -111,35 +103,35 @@
 
         <div class="relative mb-4">
             <input type="text" id="codigoManual" placeholder="✏️ O escribe el código manualmente"
-                class="w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-center text-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                class="w-full p-4 border-2 border-gray-700 rounded-xl text-center text-lg bg-gray-800 text-white focus:outline-none focus:border-blue-500 transition-all">
         </div>
 
         <!-- Contenido después de escanear -->
         <div id="contenidoDespuesEscaneo" class="hidden">
 
-            <!-- Info del código con diseño bonito -->
-            <div
-                class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-l-4 border-blue-500 p-4 rounded-xl mb-4 fade-in">
+            <!-- Info del código -->
+            <div class="bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-xl mb-4 fade-in">
                 <div class="flex items-center gap-2">
                     <span class="text-2xl">🔖</span>
                     <div>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">Código escaneado</p>
-                        <p class="font-mono font-bold text-blue-700 dark:text-blue-300 text-lg" id="codigoMostrado"></p>
+                        <p class="text-xs text-gray-400">Código escaneado</p>
+                        <p class="font-mono font-bold text-blue-300 text-lg" id="codigoMostrado"></p>
                     </div>
                 </div>
             </div>
 
             <!-- Producto NUEVO -->
-            <div id="formNuevoProducto" class="hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in">
+            <div id="formNuevoProducto"
+                class="hidden bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in border border-gray-700">
                 <div class="text-center mb-4">
                     <span class="text-5xl">🆕</span>
-                    <h2 class="font-bold text-xl text-gray-800 dark:text-white mt-2">Producto nuevo</h2>
+                    <h2 class="font-bold text-xl text-white mt-2">Producto nuevo</h2>
                 </div>
                 <div class="space-y-3">
                     <input type="text" id="nombreProducto" placeholder="Nombre del producto *"
-                        class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-green-500">
+                        class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-green-500">
                     <input type="text" id="marcaProducto" placeholder="Marca (opcional)"
-                        class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-green-500">
+                        class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-green-500">
                     <button id="guardarNuevoProductoBtn"
                         class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all shadow-md">
                         ✅ Guardar producto
@@ -148,33 +140,27 @@
             </div>
 
             <!-- Producto EXISTENTE + Gestión de lotes -->
-            <div id="formLote" class="hidden bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in">
-                <div class="text-center mb-4 pb-3 border-b-2 border-gray-200 dark:border-gray-700">
+            <div id="formLote" class="hidden bg-gray-800 rounded-2xl p-6 shadow-xl mb-4 fade-in border border-gray-700">
+                <div class="text-center mb-4 pb-3 border-b-2 border-gray-700">
                     <span class="text-4xl">📦</span>
-                    <h2 class="font-bold text-2xl text-gray-800 dark:text-white" id="productoNombre"></h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" id="productoMarca"></p>
-                </div>
-
-                <!-- Lista de lotes con diseño de tarjetas -->
-                <div id="lotesContainer" class="mb-4">
-                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                        <span>📋</span> Lotes registrados:
-                    </h3>
-                    <div id="listaDeLotes" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                    <h2 class="font-bold text-2xl text-white" id="productoNombre"></h2>
+                    <p class="text-sm text-gray-400 mt-1" id="productoMarca"></p>
                 </div>
 
                 <!-- Formulario agregar lote -->
-                <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4">
-                    <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-gray-300 mb-3 flex items-center gap-2">
                         <span>➕</span> Agregar nuevo lote
                     </h3>
                     <div class="space-y-3">
-                        <input type="text" id="lote" placeholder="Número de lote *"
-                            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
-                        <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
-                            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                        <div class="flex gap-2">
+                            <input type="text" id="lote" placeholder="Número de lote *"
+                                class="flex-1 p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
+                            <input type="number" id="cantidad" step="any" placeholder="Cantidad *"
+                                class="w-28 p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
+                        </div>
                         <input type="date" id="fechaCaducidad"
-                            class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                            class="w-full p-3 border-2 border-gray-700 rounded-xl bg-gray-700 text-white focus:outline-none focus:border-blue-500">
 
                         <div class="flex gap-3">
                             <button id="guardarLoteBtn"
@@ -188,17 +174,24 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Lista de lotes ORDENADA por fecha de caducidad -->
+                <div class="border-t-2 border-gray-700 pt-4">
+                    <h3 class="font-semibold text-gray-300 mb-2 flex items-center gap-2">
+                        <span>📋</span> Lotes registrados (por fecha)
+                    </h3>
+                    <div id="listaDeLotes" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Mensaje inicial con diseño bonito -->
+        <!-- Mensaje inicial -->
         <div id="mensajeInicial" class="text-center py-16 fade-in">
-            <div
-                class="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-6">
+            <div class="bg-gray-800 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-6">
                 <span class="text-6xl">🔍</span>
             </div>
-            <p class="text-gray-500 dark:text-gray-400 text-lg">Escanea un código de barras</p>
-            <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">para comenzar</p>
+            <p class="text-gray-400 text-lg">Presiona el botón para escanear</p>
+            <p class="text-gray-500 text-sm mt-1">Cámara se abrirá automáticamente</p>
         </div>
 
     </div>
@@ -208,14 +201,13 @@
         tg.expand();
         tg.enableClosingConfirmation();
 
-        if (tg.colorScheme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        // Forzar tema oscuro
+        tg.setBackgroundColor('#111827');
+        tg.setHeaderColor('#1f2937');
 
         let currentProductoId = null;
         let currentCodigo = null;
+        let html5QrCode = null;
 
         // ========== DATOS SIMULADOS ==========
         let productosDB = [
@@ -233,54 +225,80 @@
         ];
         let nextProductoId = 3;
         let nextLoteId = 300;
-        // =====================================
 
-        // Escáner DIRECTO (sin galería)
-        const scannerInput = document.createElement('input');
-        scannerInput.id = 'scanner-input';
-        scannerInput.type = 'file';
-        scannerInput.accept = 'image/*';
-        scannerInput.capture = 'environment'; // Esto fuerza la cámara trasera DIRECTAMENTE
-        scannerInput.style.display = 'none';
-        document.body.appendChild(scannerInput);
+        // Persistencia
+        function guardarDatos() {
+            localStorage.setItem('productosDB', JSON.stringify(productosDB));
+            localStorage.setItem('nextProductoId', nextProductoId);
+            localStorage.setItem('nextLoteId', nextLoteId);
+        }
 
+        function cargarDatos() {
+            const saved = localStorage.getItem('productosDB');
+            if (saved) {
+                productosDB = JSON.parse(saved);
+                nextProductoId = parseInt(localStorage.getItem('nextProductoId')) || 3;
+                nextLoteId = parseInt(localStorage.getItem('nextLoteId')) || 300;
+            }
+        }
+        cargarDatos();
+
+        // Iniciar escáner con cámara REAL
+        async function startScanner() {
+            const scannerContainer = document.getElementById('scannerContainer');
+            scannerContainer.classList.remove('hidden');
+
+            html5QrCode = new Html5Qrcode("reader");
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" }, // Cámara trasera
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 100 },
+                        aspectRatio: 1.0
+                    },
+                    (decodedText, decodedResult) => {
+                        // Éxito: detectó código
+                        html5QrCode.stop();
+                        scannerContainer.classList.add('hidden');
+                        document.getElementById('codigoManual').value = decodedText;
+                        procesarCodigo(decodedText);
+                        tg.showAlert(`✅ Código detectado: ${decodedText}`);
+                    },
+                    (errorMessage) => {
+                        // Ignorar errores de frame, solo mostrar si es grave
+                        if (errorMessage.includes("No MultiFormat Readers")) {
+                            console.log("Esperando código...");
+                        }
+                    }
+                );
+            } catch (err) {
+                tg.showAlert(`Error al iniciar cámara: ${err}`);
+                scannerContainer.classList.add('hidden');
+            }
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop();
+            }
+            document.getElementById('scannerContainer').classList.add('hidden');
+        }
+
+        // Botón escanear
         document.getElementById('scanBtn').onclick = () => {
-            scannerInput.click();
+            startScanner();
         };
 
-        scannerInput.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            tg.showPopup({
-                title: '📷 Procesando',
-                message: 'Leyendo código de barras...',
-                buttons: [{ type: 'ok' }]
-            });
-
-            if ('BarcodeDetector' in window) {
-                try {
-                    const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8'] }); // SOLO EAN
-                    const bitmap = await createImageBitmap(file);
-                    const barcodes = await detector.detect(bitmap);
-                    if (barcodes.length > 0) {
-                        const code = barcodes[0].rawValue;
-                        document.getElementById('codigoManual').value = code;
-                        await procesarCodigo(code);
-                    } else {
-                        tg.showAlert('❌ No se detectó código de barras EAN-13');
-                    }
-                } catch (error) {
-                    tg.showAlert('Error al leer el código: ' + error.message);
-                }
-            } else {
-                tg.showAlert('⚠️ Tu navegador no soporta escáner nativo.\nUsa entrada manual.');
-            }
-            scannerInput.value = '';
+        document.getElementById('cancelScanner').onclick = () => {
+            stopScanner();
         };
 
         document.getElementById('codigoManual').onchange = async (e) => {
-            if (e.target.value) await procesarCodigo(e.target.value);
+            if (e.target.value) {
+                stopScanner();
+                await procesarCodigo(e.target.value);
+            }
         };
 
         async function procesarCodigo(codigo) {
@@ -308,44 +326,58 @@
         function renderizarLotes(lotes) {
             const container = document.getElementById('listaDeLotes');
             if (!lotes || lotes.length === 0) {
-                container.innerHTML = '<div class="text-center py-6 text-gray-500 dark:text-gray-400">📭 No hay lotes registrados</div>';
+                container.innerHTML = '<div class="text-center py-6 text-gray-500">📭 No hay lotes registrados</div>';
                 return;
             }
 
-            container.innerHTML = lotes.map(lote => {
+            // ORDENAR por fecha de caducidad (más cercana primero)
+            const lotesOrdenados = [...lotes].sort((a, b) => new Date(a.fecha_caducidad) - new Date(b.fecha_caducidad));
+
+            container.innerHTML = lotesOrdenados.map(lote => {
                 const fecha = new Date(lote.fecha_caducidad);
                 const hoy = new Date();
                 const diffDays = Math.ceil((fecha - hoy) / (1000 * 60 * 60 * 24));
-                let colorClass = 'text-green-600 dark:text-green-400';
-                let bgClass = 'bg-green-50 dark:bg-green-900/20';
+                let colorClass = 'text-green-400';
+                let bgClass = 'bg-green-900/20';
+                let estadoBadge = '';
+
                 if (diffDays < 0) {
-                    colorClass = 'text-red-600 dark:text-red-400';
-                    bgClass = 'bg-red-50 dark:bg-red-900/20';
+                    colorClass = 'text-red-400';
+                    bgClass = 'bg-red-900/20';
+                    estadoBadge = '<span class="ml-2 text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">VENCIDO</span>';
                 } else if (diffDays < 30) {
-                    colorClass = 'text-orange-500 dark:text-orange-400';
-                    bgClass = 'bg-orange-50 dark:bg-orange-900/20';
+                    colorClass = 'text-orange-400';
+                    bgClass = 'bg-orange-900/20';
+                    estadoBadge = '<span class="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">PRÓXIMO</span>';
+                } else {
+                    estadoBadge = '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">VIGENTE</span>';
                 }
 
+                // Calcular días restantes
+                const diasRestantes = diffDays > 0 ? `(${diffDays} días)` : diffDays === 0 ? '(Hoy)' : `(Vencido hace ${Math.abs(diffDays)} días)`;
+
                 return `
-                    <div class="${bgClass} p-3 rounded-xl border border-gray-200 dark:border-gray-700 transition-all" data-lote-id="${lote.id}">
+                    <div class="${bgClass} p-3 rounded-xl border border-gray-700 transition-all">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-2">
+                                <div class="flex items-center gap-2 mb-2 flex-wrap">
                                     <span class="text-lg">🏷️</span>
-                                    <span class="font-mono font-bold text-gray-800 dark:text-white">${escapeHtml(lote.lote)}</span>
+                                    <span class="font-mono font-bold text-white">${escapeHtml(lote.lote)}</span>
+                                    ${estadoBadge}
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-sm">
                                     <div class="flex items-center gap-1">
                                         <span>📊</span>
-                                        <span class="text-gray-600 dark:text-gray-300">Cantidad:</span>
-                                        <span class="font-semibold">${lote.cantidad}</span>
+                                        <span class="text-gray-400">Cantidad:</span>
+                                        <span class="font-semibold text-white">${lote.cantidad}</span>
                                     </div>
                                     <div class="flex items-center gap-1">
                                         <span>📅</span>
-                                        <span class="text-gray-600 dark:text-gray-300">Caduca:</span>
+                                        <span class="text-gray-400">Caduca:</span>
                                         <span class="font-semibold ${colorClass}">${lote.fecha_caducidad}</span>
                                     </div>
                                 </div>
+                                <div class="text-xs text-gray-500 mt-1">${diasRestantes}</div>
                             </div>
                             <div class="flex gap-2 ml-2">
                                 <button onclick="editarCantidad(${lote.id}, ${lote.cantidad})" 
@@ -378,43 +410,26 @@
                         producto.lotes = producto.lotes.filter(l => l.id !== loteId);
                         tg.showAlert('✅ Lote eliminado');
                         renderizarLotes(producto.lotes);
+                        guardarDatos();
                     }
                 }
             });
         };
 
         window.editarCantidad = (loteId, cantidadActual) => {
-            tg.showPopup({
-                title: '✏️ Editar cantidad',
-                message: `Cantidad actual: ${cantidadActual}`,
-                buttons: [
-                    { type: 'cancel', text: 'Cancelar' },
-                    { type: 'ok', text: 'Guardar' }
-                ]
-            }).then(async () => {
-                const cantidad = await new Promise(resolve => {
-                    tg.showPopup({
-                        title: 'Nueva cantidad',
-                        message: 'Ingresa la nueva cantidad:',
-                        buttons: [{ type: 'ok' }]
-                    });
-                    // Simplificado: usamos prompt por ahora
-                    const result = prompt('Nueva cantidad:', cantidadActual);
-                    resolve(result);
-                });
-
-                if (cantidad && !isNaN(parseFloat(cantidad))) {
-                    const producto = productosDB.find(p => p.id === currentProductoId);
-                    if (producto) {
-                        const lote = producto.lotes.find(l => l.id === loteId);
-                        if (lote) {
-                            lote.cantidad = parseFloat(cantidad);
-                            tg.showAlert('✅ Cantidad actualizada');
-                            renderizarLotes(producto.lotes);
-                        }
+            const nuevaCantidad = prompt('Nueva cantidad:', cantidadActual);
+            if (nuevaCantidad && !isNaN(parseFloat(nuevaCantidad))) {
+                const producto = productosDB.find(p => p.id === currentProductoId);
+                if (producto) {
+                    const lote = producto.lotes.find(l => l.id === loteId);
+                    if (lote) {
+                        lote.cantidad = parseFloat(nuevaCantidad);
+                        tg.showAlert('✅ Cantidad actualizada');
+                        renderizarLotes(producto.lotes);
+                        guardarDatos();
                     }
                 }
-            });
+            }
         };
 
         document.getElementById('guardarNuevoProductoBtn').onclick = () => {
@@ -437,12 +452,13 @@
             currentProductoId = nuevoProducto.id;
 
             tg.showAlert('✅ Producto guardado correctamente');
+            guardarDatos();
 
             document.getElementById('formNuevoProducto').classList.add('hidden');
             document.getElementById('formLote').classList.remove('hidden');
             document.getElementById('productoNombre').textContent = nombre;
             document.getElementById('productoMarca').textContent = marca ? `Marca: ${marca}` : '';
-            document.getElementById('listaDeLotes').innerHTML = '<div class="text-center py-6 text-gray-500 dark:text-gray-400">📭 No hay lotes registrados</div>';
+            document.getElementById('listaDeLotes').innerHTML = '<div class="text-center py-6 text-gray-500">📭 No hay lotes registrados</div>';
 
             document.getElementById('nombreProducto').value = '';
             document.getElementById('marcaProducto').value = '';
@@ -460,6 +476,11 @@
 
             const producto = productosDB.find(p => p.id === currentProductoId);
             if (producto) {
+                if (producto.lotes.some(l => l.lote === lote)) {
+                    tg.showAlert('❌ Este número de lote ya existe para este producto');
+                    return;
+                }
+
                 const nuevoLote = {
                     id: nextLoteId++,
                     lote: lote,
@@ -468,6 +489,7 @@
                 };
                 producto.lotes.push(nuevoLote);
                 tg.showAlert('✅ Lote guardado correctamente');
+                guardarDatos();
 
                 document.getElementById('lote').value = '';
                 document.getElementById('cantidad').value = '';
@@ -476,28 +498,35 @@
             }
         };
 
-        // Botón FINALIZAR - limpia el formulario y vuelve al inicio
+        // Botón FINALIZAR - AHORA SÍ FUNCIONA
         document.getElementById('finalizarProductoBtn').onclick = () => {
             tg.showPopup({
                 title: '🏁 Finalizar',
-                message: '¿Has terminado de agregar lotes para este producto?',
+                message: '¿Terminaste de agregar lotes para este producto?',
                 buttons: [
                     { type: 'cancel', text: 'Seguir' },
                     { type: 'ok', text: 'Finalizar' }
                 ]
             }).then(confirmacion => {
                 if (confirmacion === 'ok') {
-                    // Limpiar todo y volver al inicio
-                    document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
-                    document.getElementById('mensajeInicial').classList.remove('hidden');
-                    document.getElementById('codigoManual').value = '';
+                    // Guardar y limpiar
+                    guardarDatos();
+
+                    // Limpiar formulario
                     document.getElementById('lote').value = '';
                     document.getElementById('cantidad').value = '';
                     document.getElementById('fechaCaducidad').value = '';
                     document.getElementById('nombreProducto').value = '';
                     document.getElementById('marcaProducto').value = '';
+                    document.getElementById('codigoManual').value = '';
+
+                    // Ocultar contenido y mostrar inicio
+                    document.getElementById('contenidoDespuesEscaneo').classList.add('hidden');
+                    document.getElementById('mensajeInicial').classList.remove('hidden');
+
                     currentProductoId = null;
                     currentCodigo = null;
+
                     tg.showAlert('✅ Sesión finalizada. Puedes escanear otro producto.');
                 }
             });

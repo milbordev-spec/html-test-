@@ -192,10 +192,28 @@
             const soloFecha = fecStr.split('T')[0];
             const fechaNueva = new Date(fecStr);
 
+            // 1. REGLA ANTIGRAVEDAD (No fechas pasadas)
+            if (fechaNueva <= fechaAhora) {
+                tg.showAlert("⚠️ Viaje en el tiempo no disponible. Selecciona una fecha y hora futura.");
+                return false;
+            }
+
             // 1. Máximo 5 por día
             const conteoDia = mensajes.filter(m => m.tel.includes(num) && m.fec.startsWith(soloFecha) && m.id != editId).length;
             if (conteoDia >= 5) {
                 tg.showAlert(`❌ El número ${num} ya tiene 5 envíos para el día ${soloFecha}.`);
+                return false;
+            }
+
+
+            // 2. REGLA ANTI-SPAM (Contenido idéntico)
+            const esDuplicado = mensajes.some(m =>
+                m.tel.includes(num) &&
+                m.msg.trim().toLowerCase() === mensajeTexto &&
+                m.id != editId
+            );
+            if (esDuplicado) {
+                tg.showAlert("🚫 Contenido duplicado detectado para este número. Evita enviar el mismo mensaje dos veces.");
                 return false;
             }
 

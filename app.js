@@ -47,38 +47,32 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
         mensajes = [];
     }
 
-    // 1. Obtener la fecha del filtro. Si está vacío, usamos HOY.
-    let fechaFiltro = document.getElementById('filtro-fecha').value;
-    if (!fechaFiltro) {
-        fechaFiltro = new Date().toISOString().split('T')[0];
-        document.getElementById('filtro-fecha').value = fechaFiltro;
-    }
-
+    const fechaFiltro = document.getElementById('filtro-fecha').value;
     let desde = paginaActual * registrosPorPagina;
     let hasta = desde + registrosPorPagina - 1;
 
+    // Base de la consulta: Solo PENDIENTES
     let query = supabaseCont
         .from('sync_logs')
         .select('*')
-        .order('scheduled_time', { ascending: true }) // Cambiado a true para ver los más próximos primero
+        .eq('status', 'pending') // <--- FILTRO CRÍTICO: Solo pendientes
+        .order('scheduled_time', { ascending: true })
         .range(desde, hasta);
 
-    if (busquedaTel && busquedaTel.length === 10) {
+    // LÓGICA DE BÚSQUEDA
+    if (busquedaTel && busquedaTel.length > 0) {
+        // BUSQUEDA GLOBAL POR TELÉFONO: Ignoramos la fecha
         query = query.contains('recipients', [busquedaTel]);
+    } else if (fechaFiltro) {
+        // FILTRO POR FECHA (Solo si no hay búsqueda de teléfono)
+        const inicioDiaUTC = `${fechaFiltro}T07:00:00Z`;
+        let dSiguiente = new Date(fechaFiltro);
+        dSiguiente.setDate(dSiguiente.getDate() + 1);
+        const fechaSiguienteStr = dSiguiente.toISOString().split('T')[0];
+        const finDiaUTC = `${fechaSiguienteStr}T06:59:59Z`;
+
+        query = query.gte('scheduled_time', inicioDiaUTC).lte('scheduled_time', finDiaUTC);
     }
-
-    // 2. CORRECCIÓN DE FECHA PARA SONORA (UTC-7)
-    // El día X en Sonora empieza a las 07:00:00 UTC del día X
-    // y termina a las 06:59:59 UTC del día X+1
-    const inicioDiaUTC = `${fechaFiltro}T07:00:00Z`;
-
-    let dSiguiente = new Date(fechaFiltro);
-    dSiguiente.setDate(dSiguiente.getDate() + 1);
-    const fechaSiguienteStr = dSiguiente.toISOString().split('T')[0];
-    const finDiaUTC = `${fechaSiguienteStr}T06:59:59Z`;
-
-    // Aplicamos el filtro estricto de fecha
-    query = query.gte('scheduled_time', inicioDiaUTC).lte('scheduled_time', finDiaUTC);
 
     const { data, error } = await query;
 
@@ -92,17 +86,19 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
                 tel: d.recipients.join(', '),
                 msg: d.message_body,
                 fec: formatearFechaLocal(fechaLocal),
-                canal: d.channel_type
+                canal: d.channel_type,
+                status: d.status // Añadido por si quieres mostrarlo en la card
             };
         });
 
         mensajes = acumular ? [...mensajes, ...nuevosMensajes] : nuevosMensajes;
         paginaActual++;
         renderList();
+    } else {
+        console.error("Error Supabase:", error.message);
     }
     cargandoMas = false;
 }
-
 
 
 

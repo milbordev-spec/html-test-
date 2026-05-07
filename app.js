@@ -22,18 +22,24 @@ let hayMasDatos = true; // Para saber cuándo dejar de pedir
 
 
 console.log('id_telehgra<: ', tg.initDataUnsafe.user?.id.toString())
+// --- TU WINDOW ONLOAD (MODIFICADO PARA CARGAR DE DB) ---
 window.onload = async () => {
-    // ... tu código del observer ...
+    // Configurar el vigilante del final de la lista
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !cargandoMas && hayMasDatos) {
+            console.log("Detectado final de lista, cargando más...");
+            const telBusqueda = document.getElementById('busqueda-tel').value.trim();
+            cargarMensajes(telBusqueda, true); // true = acumular datos
+        }
+    }, { threshold: 0.1 });
 
-    // Seteamos el input de fecha a HOY antes de cargar nada
-    const hoy = new Date().toISOString().split('T')[0];
-    const inputFecha = document.getElementById('filtro-fecha');
-    if (inputFecha) inputFecha.value = hoy;
-
+    observer.observe(document.getElementById('scroll-anchor'));
+    // const hoy = new Date().toISOString().split('T')[0];
+    // document.getElementById('filtro-fecha').value = hoy;
     setCanal('wa');
     if (window.lucide) lucide.createIcons();
 
-    await cargarMensajes();
+    await cargarMensajes(); // En lugar de leer localStorage, leemos la DB
 };
 
 // --- NUEVA FUNCIÓN PARA TRAER DATOS ---

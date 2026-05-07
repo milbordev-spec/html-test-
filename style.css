@@ -1,0 +1,81 @@
+body {
+    background-color: #05070a;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+.glass-card {
+    background: rgba(17, 25, 40, 0.75);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.input-boutique {
+    background: #0f172a !important;
+    border: 1px solid #1e293b;
+    transition: all 0.3s;
+}
+
+.border-wa:focus {
+    border-color: #10b981 !important;
+}
+
+.border-tg:focus {
+    border-color: #3b82f6 !important;
+}
+
+.tab-active-wa {
+    color: #10b981;
+    border-bottom: 2px solid #10b981;
+}
+
+.tab-active-tg {
+    color: #3b82f6;
+    border-bottom: 2px solid #3b82f6;
+}
+
+.filter-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+}
+
+.filter-pill.active-wa {
+    background: #10b981;
+    color: black;
+    border-color: #10b981;
+    font-weight: 900;
+}
+
+.filter-pill.active-tg {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    font-weight: 900;
+}
+
+.msg-card {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-card {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}

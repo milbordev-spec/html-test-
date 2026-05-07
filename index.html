@@ -340,8 +340,8 @@
             tg.showConfirm("¿Eliminar este mensaje?", (confirmado) => {
                 if (confirmado) {
                     mensajes = mensajes.filter(m => m.id !== id);
-                    localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-                    localStorage.clear()
+                    localStorage.setItem('maiba_msgs', []);
+                    // localStorage.clear()
                     renderList(); // Refresca la vista inmediatamente
                     tg.HapticFeedback.notificationOccurred('warning');
                 }

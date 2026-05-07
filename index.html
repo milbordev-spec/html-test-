@@ -129,7 +129,7 @@
                 </button>
             </div>
 
-            <!-- NÚMEROS -->
+            <!-- SECCIÓN DE NÚMEROS -->
             <div class="space-y-2">
                 <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Destinatarios (Máx 3)</label>
                 <div class="flex gap-2">
@@ -187,19 +187,19 @@
             document.getElementById('char-count').innerText = `${el.value.length} / 500`;
         }
 
-        // VALIDACIÓN DE REGLAS DE NEGOCIO
-        function validarReglas(num, fechaStr, editId) {
-            const soloFecha = fechaStr.split('T')[0];
-            const fechaNueva = new Date(fechaStr);
+        // --- LÓGICA DE VALIDACIÓN CENTRALIZADA ---
+        function verificarReglasNegocio(num, fecStr, editId) {
+            const soloFecha = fecStr.split('T')[0];
+            const fechaNueva = new Date(fecStr);
 
-            // Límite diario (5 por número)
+            // 1. Máximo 5 por día
             const conteoDia = mensajes.filter(m => m.tel.includes(num) && m.fec.startsWith(soloFecha) && m.id != editId).length;
             if (conteoDia >= 5) {
-                tg.showAlert(`⚠️ El número ${num} ya alcanzó el límite de 5 mensajes para el día seleccionado.`);
+                tg.showAlert(`❌ El número ${num} ya tiene 5 envíos para el día ${soloFecha}.`);
                 return false;
             }
 
-            // Choque de horas (1 hora de diferencia mínima)
+            // 2. Mínimo 1 hora de diferencia
             const colision = mensajes.some(m => {
                 if (m.id == editId) return false;
                 if (m.tel.includes(num)) {
@@ -209,10 +209,9 @@
                 return false;
             });
             if (colision) {
-                tg.showAlert(`⚠️ El número ${num} ya tiene un envío programado en un horario muy cercano (debe haber 1 hora de diferencia).`);
+                tg.showAlert(`❌ Choque de horario: El número ${num} requiere al menos 1 hora de espacio entre envíos.`);
                 return false;
             }
-
             return true;
         }
 
@@ -223,11 +222,12 @@
             const editId = document.getElementById('edit-id').value;
 
             if (!/^\d{10}$/.test(num)) return tg.showAlert("El número debe tener 10 dígitos.");
-            if (numerosSeleccionados.length >= 3) return tg.showAlert("Máximo 3 números.");
-            if (numerosSeleccionados.includes(num)) return tg.showAlert("Este número ya está en la lista.");
-            if (!fecStr) return tg.showAlert("Primero selecciona la fecha para validar disponibilidad.");
+            if (numerosSeleccionados.length >= 3) return tg.showAlert("Máximo 3 destinatarios.");
+            if (numerosSeleccionados.includes(num)) return tg.showAlert("Este número ya está agregado.");
+            if (!fecStr) return tg.showAlert("Selecciona primero la fecha.");
 
-            if (validarReglas(num, fecStr, editId)) {
+            // Validar antes de agregar el tag
+            if (verificarReglasNegocio(num, fecStr, editId)) {
                 numerosSeleccionados.push(num);
                 input.value = '';
                 renderTags();
@@ -285,18 +285,19 @@
                 cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold uppercase text-[10px] tracking-widest">Sin mensajes</div>';
                 return;
             }
+            // --- AQUÍ CAMBIÉ EL TAMAÑO DE LETRA ---
             cont.innerHTML = filtrados.map(m => `
                 <div class="msg-card p-6 rounded-[2.5rem] space-y-3 animate-card">
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal.toUpperCase()}</span>
                         <div class="flex gap-4">
-                            <button onclick="editar(${m.id})" class="opacity-70 hover:opacity-100">✏️</button>
-                            <button onclick="eliminar(${m.id})" class="opacity-70 hover:opacity-100">🗑️</button>
+                            <button onclick="editar(${m.id})">✏️</button>
+                            <button onclick="eliminar(${m.id})">🗑️</button>
                         </div>
                     </div>
-                    <h3 class="text-base font-black text-white break-all tracking-tight">${m.tel}</h3>
-                    <p class="text-gray-300 text-[15px] font-medium leading-relaxed">${m.msg}</p>
-                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 uppercase tracking-tighter">
+                    <h3 class="text-lg font-black text-white break-all tracking-tight">${m.tel}</h3>
+                    <p class="text-gray-300 text-[16px] font-medium leading-relaxed">${m.msg}</p>
+                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 uppercase">
                         ${m.fec.replace('T', ' — ')}
                     </div>
                 </div>
@@ -308,16 +309,16 @@
             const fecStr = document.getElementById('fecha').value;
             const editId = document.getElementById('edit-id').value;
 
-            if (numerosSeleccionados.length === 0) return tg.showAlert("Agrega al menos un número destinatario.");
-            if (!msg || !fecStr) return tg.showAlert("Por favor, completa todos los campos.");
+            if (numerosSeleccionados.length === 0) return tg.showAlert("Agrega al menos un número.");
+            if (!msg || !fecStr) return tg.showAlert("Completa todos los campos.");
 
             // Validar horario laboral
             const hora = new Date(fecStr).getHours();
-            if (hora < 7 || hora >= 21) return tg.showAlert("⚠️ Solo se pueden agendar mensajes entre las 07:00 AM y las 09:00 PM.");
+            if (hora < 7 || hora >= 21) return tg.showAlert("⚠️ Horario permitido: 07:00 AM a 09:00 PM.");
 
-            // RE-VALIDACIÓN de seguridad final para todos los números en la lista
+            // --- RE-VALIDACIÓN CRÍTICA ANTES DE GUARDAR ---
             for (let n of numerosSeleccionados) {
-                if (!validarReglas(n, fecStr, editId)) return;
+                if (!verificarReglasNegocio(n, fecStr, editId)) return;
             }
 
             const data = {
@@ -341,8 +342,8 @@
         }
 
         function eliminar(id) {
-            tg.showConfirm("¿Deseas eliminar este recordatorio?", (confirm) => {
-                if (confirm) {
+            tg.showConfirm("¿Eliminar recordatorio?", (c) => {
+                if (c) {
                     mensajes = mensajes.filter(m => Number(m.id) !== Number(id));
                     localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
                     renderList();
@@ -361,14 +362,10 @@
             setCanal(m.canal);
             switchTab('form');
             document.getElementById('btnMain').innerText = "Actualizar Registro";
-            updateCharCount(document.getElementById('mensaje'));
         }
 
         function setFilter(f) {
             filtroActual = f;
-            document.getElementById('f-all').className = `filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold ${f === 'all' ? 'active-wa' : ''}`;
-            document.getElementById('f-wa').className = `filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold ${f === 'wa' ? 'active-wa' : ''}`;
-            document.getElementById('f-tg').className = `filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold ${f === 'tg' ? 'active-tg' : ''}`;
             renderList();
         }
 
@@ -379,11 +376,11 @@
             numerosSeleccionados = [];
             renderTags();
             document.getElementById('btnMain').innerText = "Agendar Recordatorio";
-            updateCharCount(document.getElementById('mensaje'));
 
             let d = new Date();
             d.setMinutes(d.getMinutes() + 15);
             document.getElementById('fecha').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            updateCharCount(document.getElementById('mensaje'));
         }
 
         tg.ready();

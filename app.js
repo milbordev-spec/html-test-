@@ -34,8 +34,8 @@ window.onload = async () => {
     }, { threshold: 0.1 });
 
     observer.observe(document.getElementById('scroll-anchor'));
-    const hoy = new Date().toISOString().split('T')[0];
-    document.getElementById('filtro-fecha').value = hoy;
+    // const hoy = new Date().toISOString().split('T')[0];
+    // document.getElementById('filtro-fecha').value = hoy;
     setCanal('wa');
     if (window.lucide) lucide.createIcons();
 

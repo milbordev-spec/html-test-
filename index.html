@@ -9,99 +9,12 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
     <script>eruda.init();</script>
-
-    <style>
-        body {
-            background-color: #05070a;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-            transition: all 0.5s ease;
-        }
-
-        .glass-card {
-            background: rgba(17, 25, 40, 0.75);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-boutique {
-            background: #0f172a !important;
-            border: 1px solid #1e293b;
-            transition: all 0.3s;
-        }
-
-        .border-wa:focus {
-            border-color: #10b981 !important;
-        }
-
-        .border-tg:focus {
-            border-color: #3b82f6 !important;
-        }
-
-        .tab-active-wa {
-            color: #10b981;
-            border-bottom: 2px solid #10b981;
-        }
-
-        .tab-active-tg {
-            color: #3b82f6;
-            border-bottom: 2px solid #3b82f6;
-        }
-
-        .filter-pill {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.2s;
-            color: #64748b;
-        }
-
-        .filter-pill.active-wa {
-            background: #10b981;
-            color: black;
-            border-color: #10b981;
-            font-weight: 900;
-        }
-
-        .filter-pill.active-tg {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-            font-weight: 900;
-        }
-
-        .msg-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-card {
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
 </head>
 
 <body class="p-4 min-h-screen">
     <div class="max-w-md mx-auto space-y-4">
-        <!-- HEADER -->
         <div class="text-center pt-4 mb-2">
             <h1 class="text-3xl font-black italic tracking-tighter transition-colors duration-500">
                 Maiba<span id="brand-sync" class="text-green-500 text-4xl transition-colors duration-500">Sync</span>
@@ -110,7 +23,6 @@
             </p>
         </div>
 
-        <!-- TABS -->
         <div class="flex border-b border-gray-800 mb-6">
             <button onclick="switchTab('form')" id="tab-form"
                 class="flex-1 py-4 font-black text-xs tracking-widest tab-active-wa uppercase transition-all">Programar</button>
@@ -119,21 +31,19 @@
                 Mensajes</button>
         </div>
 
-        <!-- VISTA FORMULARIO -->
         <div id="view-form" class="glass-card rounded-[2.5rem] p-7 space-y-5">
             <input type="hidden" id="edit-id">
             <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 <button onclick="setCanal('tg')" id="btn-tg"
                     class="flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all">
-                    <i data-lucide="send" class="w-3 h-3"></i> <span>Telegram</span>
+                    <i data-lucide="send" class="w-4 h-4"></i> <span>Telegram</span>
                 </button>
                 <button onclick="setCanal('wa')" id="btn-wa"
                     class="flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 transition-all shadow-lg">
-                    <i data-lucide="message-circle" class="w-3 h-3"></i> <span>WhatsApp</span>
+                    <i data-lucide="message-circle" class="w-4 h-4"></i> <span>WhatsApp</span>
                 </button>
             </div>
 
-            <!-- SECCIÓN DE NÚMEROS -->
             <div class="space-y-2">
                 <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Destinatarios (Máx 3)</label>
                 <div class="flex gap-2">
@@ -161,20 +71,21 @@
             </div>
 
             <button onclick="guardarRegistro()" id="btnMain"
-                class="w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">
-                Agendar Recordatorio
-            </button>
+                class="w-full py-5 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">Agendar
+                Recordatorio</button>
+            <button onclick="limpiarFormulario()" id="btnCancel"
+                class="hidden w-full py-4 text-gray-500 font-black text-[10px] uppercase tracking-[0.2em] active:scale-95 transition-all">Cancelar
+                Edición</button>
         </div>
 
-        <!-- VISTA LISTADO -->
         <div id="view-list" class="hidden space-y-6">
             <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="setFilter('all')" id="f-all"
-                    class="filter-pill active-wa px-5 py-2 rounded-full text-[10px] uppercase font-bold">Todos</button>
+                    class="filter-pill active-wa px-5 py-2 rounded-full text-[12px] uppercase font-bold">Todos</button>
                 <button onclick="setFilter('wa')" id="f-wa"
-                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">WhatsApp</button>
+                    class="filter-pill px-5 py-2 rounded-full text-[12px] uppercase font-bold">WhatsApp</button>
                 <button onclick="setFilter('tg')" id="f-tg"
-                    class="filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold">Telegram</button>
+                    class="filter-pill px-5 py-2 rounded-full text-[12px] uppercase font-bold">Telegram</button>
             </div>
 
             <div class="px-2 mb-4">
@@ -182,216 +93,17 @@
                     Mensajes</label>
                 <div class="relative flex items-center gap-2 mt-1">
                     <input type="date" id="filtro-fecha" onchange="resetearYFiltrar()"
-                        class="input-boutique w-full p-4 rounded-2xl text-white outline-none text-sm border-white/10">
+                        class="input-boutique w-32 p-4 rounded-2xl text-white outline-none text-sm border-white/10">
                     <input type="tel" id="busqueda-tel" oninput="validarYFiltrar(this)" maxlength="10"
                         placeholder="Buscar..."
-                        class="input-boutique w-24 p-4 rounded-2xl text-white outline-none text-xs border-white/10">
+                        class="input-boutique flex-1 p-4 rounded-2xl text-white outline-none text-xs border-white/10">
                 </div>
             </div>
 
             <div id="contenedor-mensajes" class="space-y-4"></div>
         </div>
     </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        let canal = 'wa';
-        let filtroActual = 'all';
-        let mensajes = JSON.parse(localStorage.getItem('maiba_msgs') || '[]');
-        let numerosSeleccionados = [];
-
-        window.onload = () => {
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById('filtro-fecha').value = hoy;
-            setCanal('wa');
-            if (window.lucide) lucide.createIcons();
-            renderList();
-        };
-
-        function setCanal(tipo) {
-            canal = tipo;
-            const isWa = tipo === 'wa';
-            document.getElementById('btn-wa').className = isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all flex items-center justify-center gap-2';
-            document.getElementById('btn-tg').className = !isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all flex items-center justify-center gap-2';
-            document.getElementById('brand-sync').className = isWa ? 'text-green-500 text-4xl transition-colors duration-500' : 'text-blue-500 text-4xl transition-colors duration-500';
-
-            const inputs = ['telefono-input', 'mensaje', 'fecha'];
-            inputs.forEach(id => {
-                const el = document.getElementById(id);
-                el.classList.remove('border-wa', 'border-tg');
-                el.classList.add(isWa ? 'border-wa' : 'border-tg');
-            });
-        }
-
-        function setFilter(f) {
-            filtroActual = f;
-            ['all', 'wa', 'tg'].forEach(id => {
-                const btn = document.getElementById(`f-${id}`);
-                btn.className = 'filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold';
-            });
-            const activeBtn = document.getElementById(`f-${f}`);
-            activeBtn.classList.add(canal === 'wa' ? 'active-wa' : 'active-tg');
-            renderList();
-        }
-
-        function switchTab(view) {
-            document.getElementById('view-form').classList.toggle('hidden', view !== 'form');
-            document.getElementById('view-list').classList.toggle('hidden', view !== 'list');
-            document.getElementById('tab-form').className = `flex-1 py-4 font-black text-xs uppercase transition-all ${view === 'form' ? (canal === 'wa' ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-            document.getElementById('tab-list').className = `flex-1 py-4 font-black text-xs uppercase transition-all ${view === 'list' ? (canal === 'wa' ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-            if (view === 'list') renderList();
-        }
-
-        function agregarNumeroTag() {
-            const input = document.getElementById('telefono-input');
-            const num = input.value.trim();
-            if (!/^\d{10}$/.test(num)) return alert("10 dígitos requeridos");
-            if (numerosSeleccionados.length >= 3) return alert("Máximo 3");
-            if (numerosSeleccionados.includes(num)) return;
-            numerosSeleccionados.push(num);
-            input.value = '';
-            renderTags();
-        }
-
-        function renderTags() {
-            const container = document.getElementById('tags-container');
-            container.innerHTML = numerosSeleccionados.map(n => `<div class="bg-white/10 px-3 py-1 rounded-full border border-white/10 text-xs font-bold flex items-center gap-2">${n}<button onclick="eliminarTag('${n}')" class="text-red-400">✕</button></div>`).join('');
-        }
-
-        function eliminarTag(num) {
-            numerosSeleccionados = numerosSeleccionados.filter(n => n !== num);
-            renderTags();
-        }
-
-        function updateCharCount(el) {
-            document.getElementById('char-count').innerText = `${el.value.length} / 500`;
-        }
-
-        function renderList() {
-            const cont = document.getElementById('contenedor-mensajes');
-            const fechaFiltro = document.getElementById('filtro-fecha').value;
-            const telBusqueda = document.getElementById('busqueda-tel').value;
-
-            let filtrados = mensajes.filter(m => {
-                const coincideCanal = filtroActual === 'all' || m.canal === filtroActual;
-                const coincideFecha = !fechaFiltro || m.fec.startsWith(fechaFiltro);
-                const coincideTel = !telBusqueda || m.tel.includes(telBusqueda);
-                return coincideCanal && coincideFecha && coincideTel;
-            });
-
-            if (filtrados.length === 0) {
-                cont.innerHTML = '<p class="text-center text-gray-600 text-[10px] mt-10 uppercase tracking-widest">Sin registros</p>';
-                return;
-            }
-
-            cont.innerHTML = filtrados.map(m => `
-                <div class="msg-card p-6 rounded-[2rem] space-y-4 animate-card relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 flex gap-3">
-                        <button onclick="editarRegistro(${m.id})" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="eliminar(${m.id})" class="text-red-900/50 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">
-                            <i data-lucide="${m.canal === 'wa' ? 'message-circle' : 'send'}" class="w-4 h-4 ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}"></i>
-                        </div>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-gray-500">${m.canal === 'wa' ? 'WhatsApp' : 'Telegram'}</span>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-black text-white tracking-tight">${m.tel}</p>
-                        <p class="text-gray-400 text-sm mt-1 leading-relaxed">"${m.msg}"</p>
-                    </div>
-                    <div class="pt-4 border-t border-white/5 flex justify-between items-center">
-                        <div class="flex items-center gap-2 text-gray-500">
-                            <i data-lucide="calendar" class="w-4 h-4"></i>
-                            <span class="text-sm font-bold">${m.fec.split('T')[0]}</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-white">
-                            <i data-lucide="clock" class="w-4 h-4"></i>
-                            <span class="text-lg font-black">${m.fec.split('T')[1]}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            if (window.lucide) lucide.createIcons();
-        }
-
-        function guardarRegistro() {
-            const msg = document.getElementById('mensaje').value;
-            const fecStr = document.getElementById('fecha').value;
-            const editId = document.getElementById('edit-id').value;
-
-            if (numerosSeleccionados.length === 0 || !msg || !fecStr) return alert("⚠️ Completa todos los campos");
-
-            const fechaSeleccionada = new Date(fecStr);
-            const ahora = new Date();
-            const minPermitido = new Date(ahora.getTime() + 15 * 60000);
-
-            // REGLA: No fechas pasadas
-            if (fechaSeleccionada < ahora) return alert("❌ No puedes viajar al pasado. Elige una fecha futura.");
-
-            // REGLA: Mínimo 15 minutos adelante
-            if (fechaSeleccionada < minPermitido) return alert("⏳ Por seguridad, el recordatorio debe ser al menos 15 minutos después de ahora.");
-
-            for (let num of numerosSeleccionados) {
-                // REGLA: Máximo 5 por número
-                const historialNum = mensajes.filter(m => m.tel === num);
-                if (historialNum.length >= 5 && !editId) return alert(`🚫 El número ${num} ya tiene 5 mensajes. Límite de Spam alcanzado.`);
-
-                // REGLA: 1 hora de separación
-                const choqueHora = historialNum.some(m => {
-                    const diff = Math.abs(new Date(m.fec) - fechaSeleccionada) / 3600000;
-                    return diff < 1;
-                });
-                if (choqueHora && !editId) return alert(`⏰ El número ${num} ya tiene un mensaje cerca. Debe haber 1 hora de separación entre envíos.`);
-
-                if (editId) {
-                    mensajes = mensajes.filter(m => m.id != editId);
-                }
-
-                mensajes.push({ id: Date.now() + Math.random(), tel: num, msg, fec: fecStr, canal });
-            }
-
-            localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-            limpiarFormulario();
-            alert("✅ Protocolo MaibaSync Asegurado");
-            switchTab('list');
-        }
-
-        function editarRegistro(id) {
-            const m = mensajes.find(msg => msg.id === id);
-            if (!m) return;
-            switchTab('form');
-            document.getElementById('edit-id').value = m.id;
-            document.getElementById('mensaje').value = m.msg;
-            document.getElementById('fecha').value = m.fec;
-            numerosSeleccionados = [m.tel];
-            setCanal(m.canal);
-            renderTags();
-            document.getElementById('btnMain').innerText = "Actualizar Recordatorio";
-            document.getElementById('btnMain').className = "w-full py-5 bg-yellow-500 text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all";
-        }
-
-        function limpiarFormulario() {
-            document.getElementById('edit-id').value = '';
-            document.getElementById('mensaje').value = '';
-            document.getElementById('fecha').value = '';
-            document.getElementById('btnMain').innerText = "Agendar Recordatorio";
-            document.getElementById('btnMain').className = "w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all";
-            numerosSeleccionados = [];
-            renderTags();
-            updateCharCount(document.getElementById('mensaje'));
-        }
-
-        function eliminar(id) {
-            if (!confirm("¿Deseas eliminar este protocolo de seguridad?")) return;
-            mensajes = mensajes.filter(m => m.id !== id);
-            localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
-            renderList();
-        }
-
-        function resetearYFiltrar() { renderList(); }
-        function validarYFiltrar() { renderList(); }
-    </script>
+    <script src="app.js"></script>
 </body>
 
 </html>

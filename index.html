@@ -225,6 +225,21 @@
 
             <div id="contenedor-mensajes" class="space-y-4"></div>
         </div>
+
+        <!-- Spinner de Carga -->
+        <div id="loading-state" class="hidden flex flex-col items-center py-8 animate-pulse">
+            <div class="w-6 h-6 border-2 border-t-blue-500 border-white/10 rounded-full animate-spin"></div>
+            <p class="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mt-3">Sincronizando Protocolo...
+            </p>
+        </div>
+
+        <!-- Botón Cargar Más (Opcional, por si prefieres clic en lugar de scroll) -->
+        <div id="btn-load-more-container" class="hidden px-4 pb-10">
+            <button onclick="cargarSiguientePagina()"
+                class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-white/10 transition-all">
+                Cargar más registros
+            </button>
+        </div>
     </div>
 
     <script>
@@ -271,6 +286,48 @@
 
 
 
+        async function cargarSiguientePagina() {
+            if (cargando) return;
+
+            // Verificamos si hay más items para cargar
+            const fechaFiltro = document.getElementById('filtro-fecha').value;
+            const telBusqueda = document.getElementById('busqueda-tel').value;
+
+            let filtrados = mensajes.filter(m => {
+                const coincideCanal = filtroActual === 'all' || m.canal === filtroActual;
+                const coincideFecha = !fechaFiltro || m.fec.startsWith(fechaFiltro);
+                const coincideTel = !telBusqueda || m.tel.includes(telBusqueda);
+                return coincideCanal && coincideFecha && coincideTel;
+            });
+
+            if (paginaActual * itemsPorPagina >= filtrados.length) return; // No hay más
+
+            // MOSTRAR LOADING
+            const loader = document.getElementById('loading-state');
+            loader.classList.remove('hidden');
+            cargando = true;
+
+            // SIMULAR RETRASO DE RED (1.2 segundos para que se aprecie el efecto)
+            await new Promise(resolve => setTimeout(resolve, 1200));
+
+            // AUMENTAR PÁGINA Y RENDERIZAR
+            paginaActual++;
+
+            // Ocultar loader y renderizar
+            loader.classList.add('hidden');
+            cargando = false;
+            renderList(true); // Pasamos true para que sepa que es una carga extra
+        }
+
+        // Modificamos el scroll para llamar a esta nueva función
+        window.onscroll = function () {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                cargarSiguientePagina();
+            }
+        };
+
+
+
         // Función para expandir/contraer el buscador
         function toggleSearch() {
             const container = document.getElementById('search-container');
@@ -304,14 +361,19 @@
 
         // Función para validar los 10 dígitos y disparar el render
         function validarYFiltrar(input) {
-            input.value = input.value.replace(/\D/g, ''); // Solo números
+            input.value = input.value.replace(/\D/g, '');
             const errorMsg = document.getElementById('error-busqueda');
 
-            if (input.value.length > 0 && input.value.length < 10) {
+            if (input.value.length === 10) {
+                errorMsg.classList.add('hidden');
+                // Opcional: Cerrar automáticamente al completar los 10 dígitos
+                // setTimeout(() => toggleSearch(), 1000); 
+            } else if (input.value.length > 0) {
                 errorMsg.classList.remove('hidden');
             } else {
                 errorMsg.classList.add('hidden');
             }
+
             resetearYFiltrar();
         }
 
@@ -469,105 +531,132 @@
         // let cargando = false;
 
         function renderList() {
-            // 1. Evitar doble carga
-            if (cargando) return;
-            cargando = true;
-
+            // 1. El estado "cargando" ahora solo bloquea si realmente estamos en un proceso asíncrono
+            // pero permitimos que la función corra para renderizar los datos.
             const cont = document.getElementById('contenedor-mensajes');
             const fechaFiltro = document.getElementById('filtro-fecha').value;
-            const telBusqueda = document.getElementById('busqueda-tel').value; // <--- AGREGAR ESTO
+            const telBusqueda = document.getElementById('busqueda-tel').value;
+            const loader = document.getElementById('loading-state');
+            const btnLoadMore = document.getElementById('btn-load-more-container');
 
+            // 2. Filtrado Lógico
             let filtrados = mensajes.filter(m => {
                 const coincideCanal = filtroActual === 'all' || m.canal === filtroActual;
                 const coincideFecha = !fechaFiltro || m.fec.startsWith(fechaFiltro);
-                // Nueva condición de búsqueda por teléfono
                 const coincideTel = !telBusqueda || m.tel.includes(telBusqueda);
 
                 return coincideCanal && coincideFecha && coincideTel;
             });
 
-            // 3. Ordenar por fecha/hora
+            // 3. Ordenar por fecha/hora (Ascendente para ver cronograma)
             filtrados.sort((a, b) => new Date(a.fec) - new Date(b.fec));
 
-            // 4. Lógica de Infinity Scroll (Paginación)
+            // 4. Lógica de Paginación
             const fin = paginaActual * itemsPorPagina;
             const itemsAMostrar = filtrados.slice(0, fin);
 
-            // 5. Verificación de contenido vacío
+            // 5. Mostrar/Ocultar botón "Cargar más" o "Loading"
+            // Si hay más elementos que los que estamos mostrando, habilitamos el pie de carga
+            if (filtrados.length > itemsAMostrar.length) {
+                if (btnLoadMore) btnLoadMore.classList.remove('hidden');
+            } else {
+                if (btnLoadMore) btnLoadMore.classList.add('hidden');
+                if (loader) loader.classList.add('hidden');
+            }
+
+            // 6. Verificación de contenido vacío
             if (itemsAMostrar.length === 0) {
                 cont.innerHTML = `
             <div class="text-center py-20 text-gray-600 font-bold uppercase text-[10px] tracking-widest animate-pulse">
-                Sin mensajes para esta fecha
+                ${telBusqueda ? 'Sin coincidencias para este número' : 'Sin registros en este protocolo'}
             </div>`;
-                cargando = false;
                 return;
             }
 
-            // 6. Renderizado del HTML
+            // 7. Renderizado del HTML
             cont.innerHTML = itemsAMostrar.map(m => {
                 const esLargo = m.msg.length > 100;
-                const horasRestantes = Math.round((new Date(m.fec) - new Date()) / (1000 * 60 * 60));
-                const badgeColor = horasRestantes < 2 ? 'text-orange-400 bg-orange-400/10' : 'text-blue-400 bg-blue-400/10';
+
+                // Cálculo de tiempo relativo
+                const ahora = new Date();
+                const fechaMsg = new Date(m.fec);
+                const diffMs = fechaMsg - ahora;
+                const horasRestantes = Math.round(diffMs / (1000 * 60 * 60));
+
+                // Estética de Badges
+                let badgeColor = 'text-gray-400 bg-white/5';
+                let statusText = 'En Cola';
+
+                if (diffMs < 0) {
+                    badgeColor = 'text-blue-400 bg-blue-400/10 border border-blue-400/20';
+                    statusText = 'Ejecutado';
+                } else if (horasRestantes <= 2) {
+                    badgeColor = 'text-orange-400 bg-orange-400/10 border border-orange-400/20';
+                    statusText = 'Próximo';
+                }
 
                 return `
-            <div class="msg-card p-6 rounded-[3rem] space-y-4 animate-card relative overflow-hidden mb-4">
+            <div class="msg-card p-6 rounded-[2.5rem] space-y-4 animate-card relative overflow-hidden mb-4 border border-white/5 bg-white/[0.02]">
                 <!-- Header -->
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2">
-                        <span class="flex h-2 w-2 rounded-full ${m.canal === 'wa' ? 'bg-green-500' : 'bg-blue-500'} animate-pulse"></span>
-                        <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-[0.2em]">
-                            ${m.canal === 'wa' ? 'WhatsApp Business' : 'Telegram Protocol'}
+                        <span class="flex h-1.5 w-1.5 rounded-full ${m.canal === 'wa' ? 'bg-green-500' : 'bg-blue-500'} ${diffMs > 0 ? 'animate-pulse' : ''}"></span>
+                        <span class="text-[9px] font-black ${m.canal === 'wa' ? 'text-green-400/80' : 'text-blue-400/80'} uppercase tracking-[0.2em]">
+                            ${m.canal === 'wa' ? 'WhatsApp Gateway' : 'Telegram Protocol'}
                         </span>
                     </div>
-                    <div class="flex gap-3 bg-black/20 p-2 rounded-2xl border border-white/5">
-                        <button onclick="editar(${m.id})" class="hover:scale-125 transition-transform">✏️</button>
-                        <button onclick="eliminar(${m.id})" class="hover:scale-125 transition-transform">🗑️</button>
+                    <div class="flex gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5">
+                        <button onclick="editar(${m.id})" class="p-1 hover:bg-white/10 rounded-lg transition-colors text-xs">✏️</button>
+                        <button onclick="eliminar(${m.id})" class="p-1 hover:bg-red-500/20 rounded-lg transition-colors text-xs">🗑️</button>
                     </div>
                 </div>
 
                 <!-- Destinatario -->
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2 text-gray-500">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        <h3 class="text-xs font-bold uppercase tracking-widest">Destinatario</h3>
+                <div class="space-y-0.5">
+                    <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Destinatario</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-transparent flex items-center justify-center border border-white/10">
+                            <i data-lucide="phone" class="w-4 h-4 text-gray-400"></i>
+                        </div>
+                        <p class="text-lg font-black text-white tracking-tight">${m.tel}</p>
                     </div>
-                    <p class="text-xl font-black text-white truncate">${m.tel}</p>
                 </div>
 
-                <!-- Mensaje con Leer Más -->
-                <div class="bg-black/30 p-4 rounded-2xl border border-white/5 group">
-                    <p id="msg-${m.id}" class="text-gray-300 text-sm font-medium leading-relaxed break-words italic line-clamp-2 transition-all duration-500">
+                <!-- Cuerpo del Mensaje -->
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5 group relative">
+                    <p id="msg-${m.id}" class="text-gray-300 text-sm font-medium leading-relaxed break-words line-clamp-2 transition-all duration-500">
                         "${m.msg}"
                     </p>
                     ${esLargo ? `
-                        <button onclick="toggleMensaje(${m.id}, this)" class="mt-2 text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1">
+                        <button onclick="toggleMensaje(${m.id}, this)" class="mt-3 text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-1 hover:text-white transition-colors">
                             <span>Leer más</span>
-                            <svg class="w-3 h-3 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                            <i data-lucide="chevron-down" class="w-3 h-3 transition-transform duration-300"></i>
                         </button>
                     ` : ''}
                 </div>
 
-                <!-- Footer -->
-                <div class="flex justify-between items-center pt-2 border-t border-white/5">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-[13px] text-gray-500 font-bold uppercase">
-                            ${m.fec.replace('T', ' — ')}
+                <!-- Footer Info -->
+                <div class="flex justify-between items-center pt-3 border-t border-white/5">
+                    <div class="flex items-center gap-2 text-gray-500">
+                        <i data-lucide="calendar" class="w-3 h-3"></i>
+                        <span class="text-[11px] font-bold tracking-tight">
+                            ${m.fec.split('T')[0]} <span class="text-gray-700 mx-1">|</span> ${m.fec.split('T')[1]}
                         </span>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${badgeColor}">
-                        ${horasRestantes < 0 ? 'Ejecutado' : 'En Cola'}
+                    <span class="px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${badgeColor}">
+                        ${statusText}
                     </span>
                 </div>
             </div>
         `;
             }).join('');
 
-            // Re-activar iconos si usas Lucide
-            if (window.lucide) lucide.createIcons();
-
-            cargando = false;
+            // 8. Re-activar iconos de Lucide (importante para que se vean los iconos nuevos)
+            if (window.lucide) {
+                lucide.createIcons();
+            }
         }
+
 
         // 7. El trigger para cargar más al hacer scroll
         window.onscroll = function () {

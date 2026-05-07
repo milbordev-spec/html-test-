@@ -193,10 +193,10 @@
             const fechaNueva = new Date(fecStr);
 
             // 1. REGLA ANTIGRAVEDAD (No fechas pasadas)
-            if (fechaNueva <= fechaAhora) {
-                tg.showAlert("⚠️ Viaje en el tiempo no disponible. Selecciona una fecha y hora futura.");
-                return false;
-            }
+            // if (fechaNueva <= fechaAhora) {
+            //     tg.showAlert("⚠️ Viaje en el tiempo no disponible. Selecciona una fecha y hora futura.");
+            //     return false;
+            // }
 
             // 1. Máximo 5 por día
             const conteoDia = mensajes.filter(m => m.tel.includes(num) && m.fec.startsWith(soloFecha) && m.id != editId).length;
@@ -244,12 +244,12 @@
             if (!fecStr) return tg.showAlert("Selecciona primero la fecha.");
 
             // Validar antes de agregar el tag
-            // if (verificarReglasNegocio(num, fecStr, editId)) {
-            //     numerosSeleccionados.push(num);
-            //     input.value = '';
-            //     renderTags();
-            //     tg.HapticFeedback.impactOccurred('medium');
-            // }
+            if (verificarReglasNegocio(num, fecStr, editId)) {
+                numerosSeleccionados.push(num);
+                input.value = '';
+                renderTags();
+                tg.HapticFeedback.impactOccurred('medium');
+            }
         }
 
         function renderTags() {

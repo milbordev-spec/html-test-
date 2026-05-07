@@ -53,42 +53,54 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
         mensajes = [];
     }
 
-    // 1. Obtener la fecha del filtro. Si está vacío, usamos HOY.
-    let fechaFiltro = document.getElementById('filtro-fecha').value;
-    if (!fechaFiltro) {
-        fechaFiltro = new Date().toISOString().split('T')[0];
-        document.getElementById('filtro-fecha').value = fechaFiltro;
-    }
-
     let desde = paginaActual * registrosPorPagina;
     let hasta = desde + registrosPorPagina - 1;
 
+    // 1. Iniciamos la query base
     let query = supabaseCont
         .from('sync_logs')
         .select('*')
-        .order('scheduled_time', { ascending: true }) // Cambiado a true para ver los más próximos primero
+        .order('scheduled_time', { ascending: true })
         .range(desde, hasta);
 
+    // --- LOGICA DE FILTROS CRUZADOS ---
+
     if (busquedaTel && busquedaTel.length === 10) {
+        // REGLA A: Si hay teléfono, BUSQUEDA GLOBAL (olvidamos la fecha)
         query = query.contains('recipients', [busquedaTel]);
+
+        // Solo traemos los que aún no han pasado (Pendientes por tiempo)
+        const ahoraUTC = new Date().toISOString();
+        query = query.gte('scheduled_time', ahoraUTC);
+
+    } else {
+        // REGLA B: Si NO hay teléfono, usamos el FILTRO DE FECHA
+        let fechaFiltro = document.getElementById('filtro-fecha').value;
+        if (!fechaFiltro) {
+            fechaFiltro = new Date().toISOString().split('T')[0];
+            document.getElementById('filtro-fecha').value = fechaFiltro;
+        }
+
+        // Ajuste de ventana de tiempo Sonora (UTC-7)
+        const inicioDiaUTC = `${fechaFiltro}T07:00:00Z`;
+        let dSiguiente = new Date(fechaFiltro);
+        dSiguiente.setDate(dSiguiente.getDate() + 1);
+        const fechaSiguienteStr = dSiguiente.toISOString().split('T')[0];
+        const finDiaUTC = `${fechaSiguienteStr}T06:59:59Z`;
+
+        query = query.gte('scheduled_time', inicioDiaUTC).lte('scheduled_time', finDiaUTC);
     }
 
-    // 2. CORRECCIÓN DE FECHA PARA SONORA (UTC-7)
-    // El día X en Sonora empieza a las 07:00:00 UTC del día X
-    // y termina a las 06:59:59 UTC del día X+1
-    const inicioDiaUTC = `${fechaFiltro}T07:00:00Z`;
-
-    let dSiguiente = new Date(fechaFiltro);
-    dSiguiente.setDate(dSiguiente.getDate() + 1);
-    const fechaSiguienteStr = dSiguiente.toISOString().split('T')[0];
-    const finDiaUTC = `${fechaSiguienteStr}T06:59:59Z`;
-
-    // Aplicamos el filtro estricto de fecha
-    query = query.gte('scheduled_time', inicioDiaUTC).lte('scheduled_time', finDiaUTC);
-
+    // 2. Ejecutar consulta
     const { data, error } = await query;
 
-    if (!error) {
+    if (error) {
+        console.error("Error en query:", error.message);
+        cargandoMas = false;
+        return;
+    }
+
+    if (data) {
         if (data.length < registrosPorPagina) hayMasDatos = false;
 
         const nuevosMensajes = data.map(d => {
@@ -106,6 +118,7 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
         paginaActual++;
         renderList();
     }
+
     cargandoMas = false;
 }
 

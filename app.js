@@ -50,7 +50,10 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
     if (!acumular) {
         paginaActual = 0;
         hayMasDatos = true;
+        mensajes = []; // Limpiamos para nueva búsqueda
     }
+
+    const fechaFiltro = document.getElementById('filtro-fecha').value; // YYYY-MM-DD
 
     let desde = paginaActual * registrosPorPagina;
     let hasta = desde + registrosPorPagina - 1;
@@ -59,10 +62,18 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
         .from('sync_logs')
         .select('*')
         .order('scheduled_time', { ascending: false })
-        .range(desde, hasta); // <--- AQUÍ sucede la magia de la paginación
+        .range(desde, hasta);
 
+    // Filtro de Teléfono (Server-side)
     if (busquedaTel && busquedaTel.length === 10) {
         query = query.contains('recipients', [busquedaTel]);
+    }
+
+    // FILTRO DE FECHA (Server-side)
+    if (fechaFiltro) {
+        // Buscamos desde las 00:00 hasta las 23:59 de ese día
+        query = query.gte('scheduled_time', `${fechaFiltro}T00:00:00Z`)
+            .lte('scheduled_time', `${fechaFiltro}T23:59:59Z`);
     }
 
     const { data, error } = await query;
@@ -76,20 +87,22 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
                 id: d.id,
                 tel: d.recipients.join(', '),
                 msg: d.message_body,
-                fec: formatearFechaLocal(fechaLocal), // Una funcioncita para limpiar el código
+                fec: formatearFechaLocal(fechaLocal),
                 canal: d.channel_type
             };
         });
 
-        // Si acumulamos, sumamos al array; si no, reemplazamos (para búsquedas nuevas)
         mensajes = acumular ? [...mensajes, ...nuevosMensajes] : nuevosMensajes;
-
         paginaActual++;
         renderList();
     }
     cargandoMas = false;
 }
-
+async function resetearYFiltrar() {
+    const telBusqueda = document.getElementById('busqueda-tel').value.trim();
+    // Forzamos recarga desde página 0
+    await cargarMensajes(telBusqueda, false);
+}
 // Función auxiliar para no repetir código de fechas
 function formatearFechaLocal(date) {
     const pad = (n) => String(n).padStart(2, '0');
@@ -193,13 +206,7 @@ function renderList() {
     const telBusqueda = document.getElementById('busqueda-tel').value.trim();
 
     let filtrados = mensajes.filter(m => {
-        const coincideCanal = filtroActual === 'all' || m.canal === filtroActual;
-        const coincideFecha = !fechaFiltro || m.fec.startsWith(fechaFiltro);
-
-        // Filtro visual local (por si el número ya estaba en los 20 cargados)
-        const coincideTel = !telBusqueda || telBusqueda.length < 10 || m.tel.includes(telBusqueda);
-
-        return coincideCanal && coincideFecha && coincideTel;
+        return filtroActual === 'all' || m.canal === filtroActual;
     });
 
     if (filtrados.length === 0) {
@@ -360,5 +367,5 @@ async function manejarBusqueda(valor) {
     }
 }
 
-function resetearYFiltrar() { renderList(); }
+// function resetearYFiltrar() { renderList(); }
 function validarYFiltrar() { renderList(); }

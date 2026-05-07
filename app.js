@@ -22,24 +22,18 @@ let hayMasDatos = true; // Para saber cuándo dejar de pedir
 
 
 console.log('id_telehgra<: ', tg.initDataUnsafe.user?.id.toString())
-// --- TU WINDOW ONLOAD (MODIFICADO PARA CARGAR DE DB) ---
 window.onload = async () => {
-    // Configurar el vigilante del final de la lista
-    const observer = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && !cargandoMas && hayMasDatos) {
-            console.log("Detectado final de lista, cargando más...");
-            const telBusqueda = document.getElementById('busqueda-tel').value.trim();
-            cargarMensajes(telBusqueda, true); // true = acumular datos
-        }
-    }, { threshold: 0.1 });
+    // ... tu código del observer ...
 
-    observer.observe(document.getElementById('scroll-anchor'));
-    // const hoy = new Date().toISOString().split('T')[0];
-    // document.getElementById('filtro-fecha').value = hoy;
+    // Seteamos el input de fecha a HOY antes de cargar nada
+    const hoy = new Date().toISOString().split('T')[0];
+    const inputFecha = document.getElementById('filtro-fecha');
+    if (inputFecha) inputFecha.value = hoy;
+
     setCanal('wa');
     if (window.lucide) lucide.createIcons();
 
-    await cargarMensajes(); // En lugar de leer localStorage, leemos la DB
+    await cargarMensajes();
 };
 
 // --- NUEVA FUNCIÓN PARA TRAER DATOS ---
@@ -50,10 +44,15 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
     if (!acumular) {
         paginaActual = 0;
         hayMasDatos = true;
-        mensajes = []; // Limpiamos para nueva búsqueda
+        mensajes = [];
     }
 
-    const fechaFiltro = document.getElementById('filtro-fecha').value; // YYYY-MM-DD
+    // 1. Obtener la fecha del filtro. Si está vacío, usamos HOY.
+    let fechaFiltro = document.getElementById('filtro-fecha').value;
+    if (!fechaFiltro) {
+        fechaFiltro = new Date().toISOString().split('T')[0];
+        document.getElementById('filtro-fecha').value = fechaFiltro;
+    }
 
     let desde = paginaActual * registrosPorPagina;
     let hasta = desde + registrosPorPagina - 1;
@@ -61,20 +60,25 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
     let query = supabaseCont
         .from('sync_logs')
         .select('*')
-        .order('scheduled_time', { ascending: false })
+        .order('scheduled_time', { ascending: true }) // Cambiado a true para ver los más próximos primero
         .range(desde, hasta);
 
-    // Filtro de Teléfono (Server-side)
     if (busquedaTel && busquedaTel.length === 10) {
         query = query.contains('recipients', [busquedaTel]);
     }
 
-    // FILTRO DE FECHA (Server-side)
-    if (fechaFiltro) {
-        // Buscamos desde las 00:00 hasta las 23:59 de ese día
-        query = query.gte('scheduled_time', `${fechaFiltro}T00:00:00Z`)
-            .lte('scheduled_time', `${fechaFiltro}T23:59:59Z`);
-    }
+    // 2. CORRECCIÓN DE FECHA PARA SONORA (UTC-7)
+    // El día X en Sonora empieza a las 07:00:00 UTC del día X
+    // y termina a las 06:59:59 UTC del día X+1
+    const inicioDiaUTC = `${fechaFiltro}T07:00:00Z`;
+
+    let dSiguiente = new Date(fechaFiltro);
+    dSiguiente.setDate(dSiguiente.getDate() + 1);
+    const fechaSiguienteStr = dSiguiente.toISOString().split('T')[0];
+    const finDiaUTC = `${fechaSiguienteStr}T06:59:59Z`;
+
+    // Aplicamos el filtro estricto de fecha
+    query = query.gte('scheduled_time', inicioDiaUTC).lte('scheduled_time', finDiaUTC);
 
     const { data, error } = await query;
 
@@ -98,6 +102,10 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
     }
     cargandoMas = false;
 }
+
+
+
+
 async function resetearYFiltrar() {
     const telBusqueda = document.getElementById('busqueda-tel').value.trim();
     // Forzamos recarga desde página 0

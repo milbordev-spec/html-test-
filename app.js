@@ -27,15 +27,28 @@ window.onload = async () => {
 // --- NUEVA FUNCIÓN PARA TRAER DATOS ---
 async function cargarMensajes() {
     const { data, error } = await supabaseCont.from('sync_logs').select('*').order('scheduled_time', { ascending: true });
+
     if (!error) {
-        // Mapeamos para que tus funciones de render (que no toqué) sigan funcionando
-        mensajes = data.map(d => ({
-            id: d.id,
-            tel: d.recipients.join(', '),
-            msg: d.message_body,
-            fec: d.scheduled_time,
-            canal: d.channel_type
-        }));
+        mensajes = data.map(d => {
+            // Convertimos el string UTC de la DB a un objeto Date local
+            const fechaLocal = new Date(d.scheduled_time);
+
+            // Formateamos para que tu renderList actual siga funcionando sin cambios
+            // Esto genera el formato "YYYY-MM-DDTHH:mm" pero en hora local
+            const año = fechaLocal.getFullYear();
+            const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
+            const dia = String(fechaLocal.getDate()).padStart(2, '0');
+            const hora = String(fechaLocal.getHours()).padStart(2, '0');
+            const min = String(fechaLocal.getMinutes()).padStart(2, '0');
+
+            return {
+                id: d.id,
+                tel: d.recipients.join(', '),
+                msg: d.message_body,
+                fec: `${año}-${mes}-${dia}T${hora}:${min}`, // Reconstruimos el string local
+                canal: d.channel_type
+            };
+        });
         renderList();
     }
 }
@@ -219,12 +232,18 @@ async function guardarRegistro() {
         // ... (Tu lógica de choque de hora se mantiene igual aquí)
     }
 
+
+    // --- EL TRUCO DEL TIEMPO AQUÍ ---
+    // Convertimos la fecha seleccionada a ISO String (UTC). 
+    // Si en Colombia son las 6:00 PM, esto mandará "2026-05-07T23:00:00.000Z" a la base de datos.
+    const fechaParaDB = fechaSeleccionada.toISOString();
+
     // --- AQUÍ ENTRA supabaseCont ---
     const payload = {
         telegram_id: tg.initDataUnsafe.user?.id || 0,
         recipients: numerosSeleccionados, // Enviamos el array
         message_body: msg,
-        scheduled_time: fecStr,
+        scheduled_time: fechaParaDB,
         channel_type: canal
     };
 

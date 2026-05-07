@@ -196,7 +196,7 @@
         let filtroActual = 'all';
         let itemsAMostrar = 5;
         let mensajes = JSON.parse(localStorage.getItem('maiba_msgs') || '[]');
-
+        localStorage.clear()
         function updateCharCount(el) {
             document.getElementById('char-count').innerText = `${el.value.length} / 500`;
         }

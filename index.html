@@ -129,7 +129,7 @@
                 </button>
             </div>
 
-            <!-- SECCIÓN DE NÚMEROS MEJORADA -->
+            <!-- NÚMEROS -->
             <div class="space-y-2">
                 <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Destinatarios (Máx 3)</label>
                 <div class="flex gap-2">
@@ -138,7 +138,6 @@
                     <button onclick="agregarNumeroTag()"
                         class="bg-white text-black px-6 rounded-2xl font-black text-xl active:scale-90 transition-all">+</button>
                 </div>
-                <!-- Contenedor de Tags -->
                 <div id="tags-container" class="flex flex-wrap gap-2 min-h-[32px] pt-1"></div>
             </div>
 
@@ -188,6 +187,35 @@
             document.getElementById('char-count').innerText = `${el.value.length} / 500`;
         }
 
+        // VALIDACIÓN DE REGLAS DE NEGOCIO
+        function validarReglas(num, fechaStr, editId) {
+            const soloFecha = fechaStr.split('T')[0];
+            const fechaNueva = new Date(fechaStr);
+
+            // Límite diario (5 por número)
+            const conteoDia = mensajes.filter(m => m.tel.includes(num) && m.fec.startsWith(soloFecha) && m.id != editId).length;
+            if (conteoDia >= 5) {
+                tg.showAlert(`⚠️ El número ${num} ya alcanzó el límite de 5 mensajes para el día seleccionado.`);
+                return false;
+            }
+
+            // Choque de horas (1 hora de diferencia mínima)
+            const colision = mensajes.some(m => {
+                if (m.id == editId) return false;
+                if (m.tel.includes(num)) {
+                    const diff = Math.abs(new Date(m.fec) - fechaNueva) / (1000 * 60);
+                    return diff < 60;
+                }
+                return false;
+            });
+            if (colision) {
+                tg.showAlert(`⚠️ El número ${num} ya tiene un envío programado en un horario muy cercano (debe haber 1 hora de diferencia).`);
+                return false;
+            }
+
+            return true;
+        }
+
         function agregarNumeroTag() {
             const input = document.getElementById('telefono-input');
             const num = input.value.trim();
@@ -197,30 +225,14 @@
             if (!/^\d{10}$/.test(num)) return tg.showAlert("El número debe tener 10 dígitos.");
             if (numerosSeleccionados.length >= 3) return tg.showAlert("Máximo 3 números.");
             if (numerosSeleccionados.includes(num)) return tg.showAlert("Este número ya está en la lista.");
-            if (!fecStr) return tg.showAlert("Selecciona la fecha primero para validar disponibilidad.");
+            if (!fecStr) return tg.showAlert("Primero selecciona la fecha para validar disponibilidad.");
 
-            const soloFecha = fecStr.split('T')[0];
-            const fechaNueva = new Date(fecStr);
-
-            // VALIDACIÓN LÍMITE DIARIO
-            const conteoDia = mensajes.filter(m => m.tel.includes(num) && m.fec.startsWith(soloFecha) && m.id != editId).length;
-            if (conteoDia >= 5) return tg.showAlert(`⚠️ ${num} ya tiene 5 mensajes para este día.`);
-
-            // VALIDACIÓN CHOQUE DE HORA (1 hora de diferencia)
-            const colision = mensajes.some(m => {
-                if (m.id == editId) return false;
-                if (m.tel.includes(num)) {
-                    const diff = Math.abs(new Date(m.fec) - fechaNueva) / (1000 * 60);
-                    return diff < 60;
-                }
-                return false;
-            });
-            if (colision) return tg.showAlert(`⚠️ ${num} tiene un envío muy cerca de esa hora (mínimo 1hr de diferencia).`);
-
-            numerosSeleccionados.push(num);
-            input.value = '';
-            renderTags();
-            tg.HapticFeedback.impactOccurred('medium');
+            if (validarReglas(num, fecStr, editId)) {
+                numerosSeleccionados.push(num);
+                input.value = '';
+                renderTags();
+                tg.HapticFeedback.impactOccurred('medium');
+            }
         }
 
         function renderTags() {
@@ -243,18 +255,15 @@
             const isWa = tipo === 'wa';
             document.getElementById('btn-wa').className = isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
             document.getElementById('btn-tg').className = !isWa ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase flex items-center justify-center gap-2 shadow-lg transition-all' : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase flex items-center justify-center gap-2 transition-all';
-            document.getElementById('brand-sync').className = isWa ? 'text-green-500 text-4xl transition-colors' : 'text-blue-500 text-4xl transition-colors';
+            document.getElementById('brand-sync').className = isWa ? 'text-green-500 text-4xl transition-colors duration-500' : 'text-blue-500 text-4xl transition-colors duration-500';
             updateThemeStyles(isWa);
-            tg.HapticFeedback.impactOccurred('light');
         }
 
         function updateThemeStyles(isWa) {
             const inputs = [document.getElementById('telefono-input'), document.getElementById('mensaje'), document.getElementById('fecha')];
             inputs.forEach(input => {
-                if (input) {
-                    input.classList.remove('border-wa', 'border-tg');
-                    input.classList.add(isWa ? 'border-wa' : 'border-tg');
-                }
+                input.classList.remove('border-wa', 'border-tg');
+                input.classList.add(isWa ? 'border-wa' : 'border-tg');
             });
         }
 
@@ -265,7 +274,6 @@
             document.getElementById('tab-form').className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'form' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
             document.getElementById('tab-list').className = `flex-1 py-4 font-black text-xs tracking-widest uppercase transition-all ${view === 'list' ? (isWa ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
             if (view === 'list') renderList();
-            tg.HapticFeedback.impactOccurred('medium');
         }
 
         function renderList() {
@@ -277,18 +285,18 @@
                 cont.innerHTML = '<div class="text-center py-20 text-gray-600 font-bold uppercase text-[10px] tracking-widest">Sin mensajes</div>';
                 return;
             }
-            cont.innerHTML = filtrados.map((m, index) => `
-                <div class="msg-card p-6 rounded-[2rem] space-y-3 animate-card">
+            cont.innerHTML = filtrados.map(m => `
+                <div class="msg-card p-6 rounded-[2.5rem] space-y-3 animate-card">
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-black ${m.canal === 'wa' ? 'text-green-400' : 'text-blue-400'} uppercase tracking-widest">${m.canal.toUpperCase()}</span>
                         <div class="flex gap-4">
-                            <button onclick="editar(${m.id})">✏️</button>
-                            <button onclick="eliminar(${m.id})">🗑️</button>
+                            <button onclick="editar(${m.id})" class="opacity-70 hover:opacity-100">✏️</button>
+                            <button onclick="eliminar(${m.id})" class="opacity-70 hover:opacity-100">🗑️</button>
                         </div>
                     </div>
-                    <h3 class="text-sm font-black text-white break-all">${m.tel}</h3>
-                    <p class="text-gray-400 text-sm font-medium">${m.msg}</p>
-                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 uppercase">
+                    <h3 class="text-base font-black text-white break-all tracking-tight">${m.tel}</h3>
+                    <p class="text-gray-300 text-[15px] font-medium leading-relaxed">${m.msg}</p>
+                    <div class="text-[10px] text-gray-500 font-bold pt-3 border-t border-white/5 uppercase tracking-tighter">
                         ${m.fec.replace('T', ' — ')}
                     </div>
                 </div>
@@ -300,11 +308,17 @@
             const fecStr = document.getElementById('fecha').value;
             const editId = document.getElementById('edit-id').value;
 
-            if (numerosSeleccionados.length === 0) return tg.showAlert("Agrega al menos un número.");
-            if (!msg || !fecStr) return tg.showAlert("Faltan datos.");
+            if (numerosSeleccionados.length === 0) return tg.showAlert("Agrega al menos un número destinatario.");
+            if (!msg || !fecStr) return tg.showAlert("Por favor, completa todos los campos.");
 
+            // Validar horario laboral
             const hora = new Date(fecStr).getHours();
-            if (hora < 7 || hora >= 21) return tg.showAlert("⚠️ Horario permitido: 07:00 AM a 09:00 PM.");
+            if (hora < 7 || hora >= 21) return tg.showAlert("⚠️ Solo se pueden agendar mensajes entre las 07:00 AM y las 09:00 PM.");
+
+            // RE-VALIDACIÓN de seguridad final para todos los números en la lista
+            for (let n of numerosSeleccionados) {
+                if (!validarReglas(n, fecStr, editId)) return;
+            }
 
             const data = {
                 id: editId ? Number(editId) : Date.now(),
@@ -327,8 +341,8 @@
         }
 
         function eliminar(id) {
-            tg.showConfirm("¿Eliminar este mensaje?", (c) => {
-                if (c) {
+            tg.showConfirm("¿Deseas eliminar este recordatorio?", (confirm) => {
+                if (confirm) {
                     mensajes = mensajes.filter(m => Number(m.id) !== Number(id));
                     localStorage.setItem('maiba_msgs', JSON.stringify(mensajes));
                     renderList();
@@ -346,11 +360,15 @@
             renderTags();
             setCanal(m.canal);
             switchTab('form');
-            document.getElementById('btnMain').innerText = "Actualizar";
+            document.getElementById('btnMain').innerText = "Actualizar Registro";
+            updateCharCount(document.getElementById('mensaje'));
         }
 
         function setFilter(f) {
             filtroActual = f;
+            document.getElementById('f-all').className = `filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold ${f === 'all' ? 'active-wa' : ''}`;
+            document.getElementById('f-wa').className = `filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold ${f === 'wa' ? 'active-wa' : ''}`;
+            document.getElementById('f-tg').className = `filter-pill px-5 py-2 rounded-full text-[10px] uppercase font-bold ${f === 'tg' ? 'active-tg' : ''}`;
             renderList();
         }
 
@@ -361,6 +379,7 @@
             numerosSeleccionados = [];
             renderTags();
             document.getElementById('btnMain').innerText = "Agendar Recordatorio";
+            updateCharCount(document.getElementById('mensaje'));
 
             let d = new Date();
             d.setMinutes(d.getMinutes() + 15);

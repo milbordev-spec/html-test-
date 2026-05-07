@@ -205,7 +205,6 @@
                 return false;
             }
 
-
             // 2. REGLA ANTI-SPAM (Contenido idéntico)
             const esDuplicado = mensajes.some(m =>
                 m.tel.includes(num) &&
@@ -245,12 +244,12 @@
             if (!fecStr) return tg.showAlert("Selecciona primero la fecha.");
 
             // Validar antes de agregar el tag
-            if (verificarReglasNegocio(num, fecStr, editId)) {
-                numerosSeleccionados.push(num);
-                input.value = '';
-                renderTags();
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            // if (verificarReglasNegocio(num, fecStr, editId)) {
+            //     numerosSeleccionados.push(num);
+            //     input.value = '';
+            //     renderTags();
+            //     tg.HapticFeedback.impactOccurred('medium');
+            // }
         }
 
         function renderTags() {

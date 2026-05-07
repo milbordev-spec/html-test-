@@ -101,13 +101,17 @@
                 <div class="relative flex items-center gap-2 mt-1">
                     <input type="date" id="filtro-fecha" onchange="resetearYFiltrar()"
                         class="input-boutique w-32 p-4 rounded-2xl text-white outline-none text-sm border-white/10">
-                    <input type="tel" id="busqueda-tel" oninput="validarYFiltrar(this)" maxlength="10"
-                        placeholder="Buscar..."
-                        class="input-boutique flex-1 p-4 rounded-2xl text-white outline-none text-xs border-white/10">
+                    <input type="number" id="busqueda-tel" oninput="manejarBusqueda(this.value)"
+                        placeholder="Buscar 10 dígitos..."
+                        class="input-boutique flex-1 p-4 rounded-2xl text-white outline-none text-xs border-white/10" />
                 </div>
             </div>
 
             <div id="contenedor-mensajes" class="space-y-4"></div>
+            <div id="scroll-anchor" class="h-10 w-full flex items-center justify-center">
+                <!-- Aquí puedes poner un spinner de carga -->
+                <span class="text-[8px] text-gray-700 tracking-[0.3em] uppercase">MaibaSync Cargando...</span>
+            </div>
         </div>
     </div>
     <script src="app.js"></script>

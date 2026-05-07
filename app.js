@@ -12,10 +12,28 @@ let filtroActual = 'all';
 let mensajes = []; // Se llenará desde la DB
 let numerosSeleccionados = [];
 
+let limiteCarga = 20; // Cuántos traer por vez
+
+
+let paginaActual = 0;
+const registrosPorPagina = 20;
+let cargandoMas = false;
+let hayMasDatos = true; // Para saber cuándo dejar de pedir
+
 
 console.log('id_telehgra<: ', tg.initDataUnsafe.user?.id.toString())
 // --- TU WINDOW ONLOAD (MODIFICADO PARA CARGAR DE DB) ---
 window.onload = async () => {
+    // Configurar el vigilante del final de la lista
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !cargandoMas && hayMasDatos) {
+            console.log("Detectado final de lista, cargando más...");
+            const telBusqueda = document.getElementById('busqueda-tel').value.trim();
+            cargarMensajes(telBusqueda, true); // true = acumular datos
+        }
+    }, { threshold: 0.1 });
+
+    observer.observe(document.getElementById('scroll-anchor'));
     const hoy = new Date().toISOString().split('T')[0];
     document.getElementById('filtro-fecha').value = hoy;
     setCanal('wa');
@@ -25,32 +43,57 @@ window.onload = async () => {
 };
 
 // --- NUEVA FUNCIÓN PARA TRAER DATOS ---
-async function cargarMensajes() {
-    const { data, error } = await supabaseCont.from('sync_logs').select('*').order('scheduled_time', { ascending: true });
+async function cargarMensajes(busquedaTel = "", acumular = false) {
+    if (cargandoMas || (!hayMasDatos && acumular)) return;
+
+    cargandoMas = true;
+    if (!acumular) {
+        paginaActual = 0;
+        hayMasDatos = true;
+    }
+
+    let desde = paginaActual * registrosPorPagina;
+    let hasta = desde + registrosPorPagina - 1;
+
+    let query = supabaseCont
+        .from('sync_logs')
+        .select('*')
+        .order('scheduled_time', { ascending: false })
+        .range(desde, hasta); // <--- AQUÍ sucede la magia de la paginación
+
+    if (busquedaTel && busquedaTel.length === 10) {
+        query = query.contains('recipients', [busquedaTel]);
+    }
+
+    const { data, error } = await query;
 
     if (!error) {
-        mensajes = data.map(d => {
-            // Convertimos el string UTC de la DB a un objeto Date local
+        if (data.length < registrosPorPagina) hayMasDatos = false;
+
+        const nuevosMensajes = data.map(d => {
             const fechaLocal = new Date(d.scheduled_time);
-
-            // Formateamos para que tu renderList actual siga funcionando sin cambios
-            // Esto genera el formato "YYYY-MM-DDTHH:mm" pero en hora local
-            const año = fechaLocal.getFullYear();
-            const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
-            const dia = String(fechaLocal.getDate()).padStart(2, '0');
-            const hora = String(fechaLocal.getHours()).padStart(2, '0');
-            const min = String(fechaLocal.getMinutes()).padStart(2, '0');
-
             return {
                 id: d.id,
                 tel: d.recipients.join(', '),
                 msg: d.message_body,
-                fec: `${año}-${mes}-${dia}T${hora}:${min}`, // Reconstruimos el string local
+                fec: formatearFechaLocal(fechaLocal), // Una funcioncita para limpiar el código
                 canal: d.channel_type
             };
         });
+
+        // Si acumulamos, sumamos al array; si no, reemplazamos (para búsquedas nuevas)
+        mensajes = acumular ? [...mensajes, ...nuevosMensajes] : nuevosMensajes;
+
+        paginaActual++;
         renderList();
     }
+    cargandoMas = false;
+}
+
+// Función auxiliar para no repetir código de fechas
+function formatearFechaLocal(date) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 // --- TUS FUNCIONES DE UI (SIN CAMBIOS) ---
@@ -147,17 +190,20 @@ function toggleMensaje(id, btn) {
 function renderList() {
     const cont = document.getElementById('contenedor-mensajes');
     const fechaFiltro = document.getElementById('filtro-fecha').value;
-    const telBusqueda = document.getElementById('busqueda-tel').value;
+    const telBusqueda = document.getElementById('busqueda-tel').value.trim();
 
     let filtrados = mensajes.filter(m => {
         const coincideCanal = filtroActual === 'all' || m.canal === filtroActual;
         const coincideFecha = !fechaFiltro || m.fec.startsWith(fechaFiltro);
-        const coincideTel = !telBusqueda || m.tel.includes(telBusqueda);
+
+        // Filtro visual local (por si el número ya estaba en los 20 cargados)
+        const coincideTel = !telBusqueda || telBusqueda.length < 10 || m.tel.includes(telBusqueda);
+
         return coincideCanal && coincideFecha && coincideTel;
     });
 
     if (filtrados.length === 0) {
-        cont.innerHTML = '<p class="text-center text-gray-600 text-[10px] mt-10 uppercase tracking-widest">Sin registros</p>';
+        cont.innerHTML = '<p class="text-center text-gray-600 text-[10px] mt-10 uppercase tracking-widest">Sin registros coincidentes</p>';
         return;
     }
 
@@ -302,6 +348,16 @@ function limpiarFormulario() {
     updateCharCount(document.getElementById('mensaje'));
     document.getElementById('btnCancel').classList.add('hidden');
     setCanal(canal);
+}
+
+
+// Esta función se llama cada vez que el usuario escribe en el buscador
+async function manejarBusqueda(valor) {
+    const tel = valor.trim();
+    if (tel.length === 0 || tel.length === 10) {
+        hayMasDatos = true; // Reseteamos para que pueda volver a cargar si borra búsqueda
+        await cargarMensajes(tel, false); // false = no acumular, es búsqueda nueva
+    }
 }
 
 function resetearYFiltrar() { renderList(); }

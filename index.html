@@ -7,6 +7,8 @@
     <title>MaibaSync Secure</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
     <style>
         body {
             background-color: #05070a;
@@ -191,6 +193,8 @@
         function verificarReglasNegocio(num, fecStr, editId) {
             const soloFecha = fecStr.split('T')[0];
             const fechaNueva = new Date(fecStr);
+
+            consle.log(fecStr)
 
             // 1. REGLA ANTIGRAVEDAD (No fechas pasadas)
             // if (fechaNueva <= fechaAhora) {

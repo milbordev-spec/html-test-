@@ -261,8 +261,10 @@ function setCanal(tipo) {
     const brandSync = document.getElementById('brand-sync');
 
     document.getElementById('btn-wa').className = isWa
-        ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2'
+        ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2'
         : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all flex items-center justify-center gap-2';
+    // ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2'
+    // : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all flex items-center justify-center gap-2';
 
     document.getElementById('btn-tg').className = !isWa
         ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2'

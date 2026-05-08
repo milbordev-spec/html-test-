@@ -7,6 +7,9 @@ const supabaseCont = supabase.createClient(_K, _P, {
     global: { headers: { 'x-telegram-id': tg.initDataUnsafe.user?.id.toString() || '0' } }
 });
 
+
+console.log('x-telegram-id: ', tg.initDataUnsafe.user?.id.toString())
+
 let canal = 'wa';
 let filtroActual = 'all';
 let mensajes = []; // Se llenará desde la DB

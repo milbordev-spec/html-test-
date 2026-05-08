@@ -48,6 +48,8 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
 
     const fechaFiltro = document.getElementById('filtro-fecha').value;
 
+    console.log(fechaFiltro)
+
     actualizarContadores(fechaFiltro);
 
     cargandoMas = true;
@@ -252,6 +254,18 @@ function renderList() {
                 <button onclick="eliminar('${m.id}')" class="text-red-900/40 hover:text-red-500 transition-all active:scale-125"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
             </div>
             <div class="flex items-center gap-3">
+
+            <div class="flex items-center gap-2">
+            <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em]">Protocolo de Envío</span>
+            
+            <!-- BADGE DINÁMICO DE STATUS -->
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter border 
+                ${m.status === 'sent'
+            ? 'bg-green-500/10 text-green-500 border-green-500/30'
+            : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'}">
+                ${m.status || 'pending'}
+            </span>
+        </div>
             
                 <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center border border-white/5">
                     <i data-lucide="${m.canal === 'wa' ? 'message-circle' : 'send'}" class="w-5 h-5 ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}"></i>
@@ -401,37 +415,40 @@ async function manejarBusqueda(valor) {
 
 
 async function actualizarContadores(fechaSeleccionada) {
-    const fecha = fechaSeleccionada || document.getElementById('filtro-fecha').value;
-    const canalActivo = canal; // La variable global 'canal' (wa o tg)
+    const fecha = fechaSeleccionada || document.getElementById('filtro-fecha').value; // Ej: "2026-05-07"
+    const canalActivo = canal;
 
-    // Ventana Sonora UTC-7
-    const inicioDiaUTC = `${fecha}T07:00:00Z`;
-    let dSiguiente = new Date(fecha);
-    dSiguiente.setDate(dSiguiente.getDate() + 1);
-    const finDiaUTC = `${dSiguiente.toISOString().split('T')[0]}T06:59:59Z`;
+    // VENTANA DINÁMICA: Ajustamos el desfase de Sonora (UTC-7)
+    // Inicio: 7:00 AM UTC del día seleccionado (00:00 local)
+    const inicioUTC = `${fecha}T07:00:00Z`;
 
-    // CONSULTA PENDIENTES
-    // Usamos 'or' para capturar si el status es 'pending' O si está vacío (null)
-    const { count: pCount } = await supabaseCont
-        .from('sync_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('channel_type', canalActivo)
-        .gte('scheduled_time', inicioDiaUTC)
-        .lte('scheduled_time', finDiaUTC)
-        .or('status.eq.pending,status.is.null'); // Captura pendientes y nulos
+    // Fin: 6:59:59 AM UTC del DÍA SIGUIENTE (23:59 local)
+    let dSiguiente = new Date(fecha + 'T00:00:00Z');
+    dSiguiente.setUTCDate(dSiguiente.getUTCDate() + 1);
+    const finUTC = `${dSiguiente.toISOString().split('T')[0]}T06:59:59Z`;
 
-    // CONSULTA ENVIADOS
-    const { count: sCount } = await supabaseCont
-        .from('sync_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('channel_type', canalActivo)
-        .eq('status', 'sent')
-        .gte('scheduled_time', inicioDiaUTC)
-        .lte('scheduled_time', finDiaUTC);
+    console.log(`[Sonora Sync] Buscando entre ${inicioUTC} y ${finUTC}`);
 
-    // Actualizar la UI
-    document.getElementById('count-pending').innerText = pCount || 0;
-    document.getElementById('count-sent').innerText = sCount || 0;
+    const [respP, respS] = await Promise.all([
+        supabaseCont
+            .from('sync_logs')
+            .select('id', { count: 'exact', head: true })
+            // .eq('channel_type', canalActivo)
+            .gte('scheduled_time', inicioUTC)
+            .lte('scheduled_time', finUTC)
+            .neq('delivery_status', 'sent'), // Cuenta: pending, failed, null, etc.
+
+        supabaseCont
+            .from('sync_logs')
+            .select('id', { count: 'exact', head: true })
+            // .eq('channel_type', canalActivo)
+            .eq('delivery_status', 'sent')
+            .gte('scheduled_time', inicioUTC)
+            .lte('scheduled_time', finUTC)
+    ]);
+
+    document.getElementById('count-pending').innerText = respP.count || 0;
+    document.getElementById('count-sent').innerText = respS.count || 0;
 }
 
 // function resetearYFiltrar() { renderList(); }

@@ -206,9 +206,6 @@ async function finalizarRegistro() {
     btn.disabled = true;
     btn.innerHTML = `<span class="animate-pulse">CONFIGURANDO...</span>`;
 
-    console.log('Data de tg: ', tg.initDataUnsafe.user)
-    console.log('Data de tg: ', telegramIdActual)
-
     const payload = {
         telegram_id: telegramIdActual,
         company_name: document.getElementById('reg-empresa').value.trim(),
@@ -216,7 +213,7 @@ async function finalizarRegistro() {
         city: document.getElementById('reg-ciudad').value.trim(),
         state: document.getElementById('reg-estado').value.trim(),
         business_phone: document.getElementById('reg-telefono').value.trim(),
-        tg_username: tg.initDataUnsafe?.user?.id || null
+        tg_username: tg.initDataUnsafe?.user?.username || null
     };
 
     // Validaciones de negocio

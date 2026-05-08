@@ -263,6 +263,7 @@ function setCanal(tipo) {
     document.getElementById('btn-wa').className = isWa
         ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2'
         : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all flex items-center justify-center gap-2';
+
     // ? 'flex-1 py-3 rounded-lg text-xs font-black bg-green-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2'
     // : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all flex items-center justify-center gap-2';
 
@@ -270,7 +271,8 @@ function setCanal(tipo) {
         ? 'flex-1 py-3 rounded-lg text-xs font-black bg-blue-500 text-white uppercase shadow-lg transition-all flex items-center justify-center gap-2'
         : 'flex-1 py-3 rounded-lg text-xs font-black text-gray-500 uppercase transition-all flex items-center justify-center gap-2';
 
-    brandSync.className = isWa ? 'text-green-500 text-4xl transition-colors duration-500' : 'text-blue-500 text-4xl transition-colors duration-500';
+    // brandSync.className = isWa ? 'text-green-500 text-4xl transition-colors duration-500' : 'text-blue-500 text-4xl transition-colors duration-500';
+    brandSync.className = 'text-blue-500 text-4xl transition-colors duration-500';
 
     const inputs = ['telefono-input', 'mensaje', 'fecha'];
     inputs.forEach(id => {
@@ -282,7 +284,7 @@ function setCanal(tipo) {
     const isEditing = document.getElementById('edit-id').value !== '';
     if (!isEditing) {
         if (isWa) {
-            btnMain.className = "w-full py-5 bg-green-500 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all";
+            btnMain.className = "w-full py-5 bg-blue-500 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all";
         } else {
             btnMain.className = "w-full py-5 bg-blue-500 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all";
         }
@@ -303,8 +305,8 @@ function setFilter(f) {
 function switchTab(view) {
     document.getElementById('view-form').classList.toggle('hidden', view !== 'form');
     document.getElementById('view-list').classList.toggle('hidden', view !== 'list');
-    document.getElementById('tab-form').className = `flex-1 py-4 font-black text-xs uppercase transition-all ${view === 'form' ? (canal === 'wa' ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
-    document.getElementById('tab-list').className = `flex-1 py-4 font-black text-xs uppercase transition-all ${view === 'list' ? (canal === 'wa' ? 'tab-active-wa' : 'tab-active-tg') : 'text-gray-500'}`;
+    document.getElementById('tab-form').className = `flex-1 py-4 font-black text-xs uppercase transition-all ${view === 'form' ? (canal === 'wa' ? 'tab-active-wa' : 'tab-active-tg') : 'text-black-500'}`;
+    document.getElementById('tab-list').className = `flex-1 py-4 font-black text-xs uppercase transition-all ${view === 'list' ? (canal === 'wa' ? 'tab-active-wa' : 'tab-active-tg') : 'text-black-500'}`;
     if (view === 'list') renderList();
 }
 

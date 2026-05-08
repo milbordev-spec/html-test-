@@ -1,5 +1,7 @@
 const tg = window.Telegram.WebApp;
 
+tg.ready();
+
 // --- CONFIGURACIÓN supabaseCont ---
 const _K = 'https://gcdjrmlurgmsimxfcnhl.supabase.co';
 const _P = 'sb_publishable_tfuxf7U1TmUuofjIePGVeg_ZfUCZvtk';
@@ -470,5 +472,3 @@ async function actualizarContadores(fechaSeleccionada) {
 // function resetearYFiltrar() { renderList(); }
 function validarYFiltrar() { renderList(); }
 
-
-tg.ready();

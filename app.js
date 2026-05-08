@@ -1,8 +1,8 @@
+// 1. Instancia básica de Telegram
 const tg = window.Telegram.WebApp;
-tg.ready()
+tg.ready(); // CRUCIAL: Avisa a Telegram que la app está lista
 
-
-
+// 2. Función para obtener el ID de forma segura
 function getTelegramId() {
     // Si existe el ID lo regresa, si no, usa uno de prueba (solo para desarrollo)
     const id = tg.initDataUnsafe.user?.id;
@@ -13,17 +13,18 @@ function getTelegramId() {
     return '12345678';
 }
 
-
-
-console.log(getTelegramId)
-
-// --- CONFIGURACIÓN supabaseCont ---
+// 3. Configuración dinámica de Supabase
 const _K = 'https://gcdjrmlurgmsimxfcnhl.supabase.co';
 const _P = 'sb_publishable_tfuxf7U1TmUuofjIePGVeg_ZfUCZvtk';
-const supabaseCont = supabase.createClient(_K, _P, {
-    global: { headers: { 'x-telegram-id': tg.initDataUnsafe.user?.id.toString() || '0' } }
-});
 
+// Usamos una función para crear el cliente para que el ID se evalúe correctamente
+const supabaseCont = supabase.createClient(_K, _P, {
+    global: {
+        headers: {
+            'x-telegram-id': getTelegramId()
+        }
+    }
+});
 
 console.log('x-telegram-id: ', tg.initDataUnsafe.user?.id.toString())
 

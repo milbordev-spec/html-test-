@@ -17,7 +17,7 @@ function extraerIdSeguro() {
             if (userObj.id) return userObj.id.toString();
         }
     } catch (e) {
-        console.error("Error parseando initData:", e);
+        console.error("Error parseando");
     }
 
     // Intento 3: Modo Desarrollo (Hardcoded temporal para pruebas)
@@ -40,7 +40,7 @@ const supabaseCont = supabase.createClient(_K, _P, {
     }
 });
 
-console.log('ID Detectado para Supabase:', telegramIdActual);
+// console.log('ID Detectado para Supabase:', telegramIdActual);
 
 let canal = 'wa';
 let filtroActual = 'all';
@@ -206,6 +206,9 @@ async function finalizarRegistro() {
     btn.disabled = true;
     btn.innerHTML = `<span class="animate-pulse">CONFIGURANDO...</span>`;
 
+    console.log('Data de tg: ', tg.initDataUnsafe.user)
+    console.log('Data de tg: ', telegramIdActual)
+
     const payload = {
         telegram_id: telegramIdActual,
         company_name: document.getElementById('reg-empresa').value.trim(),
@@ -213,7 +216,7 @@ async function finalizarRegistro() {
         city: document.getElementById('reg-ciudad').value.trim(),
         state: document.getElementById('reg-estado').value.trim(),
         business_phone: document.getElementById('reg-telefono').value.trim(),
-        tg_username: tg.initDataUnsafe?.user?.username || null
+        tg_username: tg.initDataUnsafe?.user?.id || null
     };
 
     // Validaciones de negocio

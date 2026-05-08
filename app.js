@@ -69,24 +69,37 @@ function obtenerFechaLocalActual() {
 }
 
 // --- TU WINDOW ONLOAD (MODIFICADO PARA CARGAR DE DB) ---
+// --- TU WINDOW ONLOAD ACTUALIZADO ---
 window.onload = async () => {
-    // Configurar el vigilante del final de la lista
+    // 1. VERIFICACIÓN DE PROTOCOLO DE REGISTRO (MAIBATECH)
+    if (telegramIdActual !== "0") {
+        const { data: client, error } = await supabaseCont
+            .from('maiba_clients')
+            .select('*')
+            .eq('telegram_id', telegramIdActual)
+            .single();
+
+        if (error || !client) {
+            // Si no existe el perfil de empresa, bloqueamos con el modal
+            document.getElementById('modal-registro').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons(); // Para los iconos del modal
+            return; // Detenemos la carga del resto de la app
+        }
+        console.log("Acceso Autorizado: " + client.company_name);
+    }
+
+    // 2. CONTINUAR CON TU LÓGICA NORMAL (Si el registro existe)
     const observer = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && !cargandoMas && hayMasDatos) {
-            console.log("Detectado final de lista, cargando más...");
             const telBusqueda = document.getElementById('busqueda-tel').value.trim();
-            cargarMensajes(telBusqueda, true); // true = acumular datos
+            cargarMensajes(telBusqueda, true);
         }
     }, { threshold: 0.1 });
 
     observer.observe(document.getElementById('scroll-anchor'));
-    // const hoy = new Date().toISOString().split('T')[0];
-    // document.getElementById('filtro-fecha').value = hoy;
-
 
     const hoy = obtenerFechaLocalActual();
     const filtroFechaInput = document.getElementById('filtro-fecha');
-
     if (filtroFechaInput && !filtroFechaInput.value) {
         filtroFechaInput.value = hoy;
     }
@@ -94,7 +107,7 @@ window.onload = async () => {
     setCanal('wa');
     if (window.lucide) lucide.createIcons();
 
-    await cargarMensajes(); // En lugar de leer localStorage, leemos la DB
+    await cargarMensajes();
 };
 
 // --- NUEVA FUNCIÓN PARA TRAER DATOS ---
@@ -183,6 +196,49 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
     cargandoMas = false;
 }
 
+
+// --- FUNCIÓN DE REGISTRO DE EMPRESA ---
+async function finalizarRegistro() {
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+
+    // Bloqueo de UI
+    btn.disabled = true;
+    btn.innerHTML = `<span class="animate-pulse">CONFIGURANDO...</span>`;
+
+    const payload = {
+        telegram_id: telegramIdActual,
+        company_name: document.getElementById('reg-empresa').value.trim(),
+        address: document.getElementById('reg-direccion').value.trim(),
+        city: document.getElementById('reg-ciudad').value.trim(),
+        state: document.getElementById('reg-estado').value.trim(),
+        business_phone: document.getElementById('reg-telefono').value.trim(),
+        tg_username: tg.initDataUnsafe?.user?.username || null
+    };
+
+    // Validaciones de negocio
+    if (!payload.company_name || !payload.business_phone) {
+        alert("⚠️ Los campos de Empresa y Teléfono son obligatorios para el protocolo.");
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        return;
+    }
+
+    const { error } = await supabaseCont
+        .from('maiba_clients')
+        .insert([payload]);
+
+    if (!error) {
+        alert("✅ Registro Exitoso. Bienvenido a MaibaTech.");
+        document.getElementById('modal-registro').classList.add('hidden');
+        location.reload(); // Recargamos para que el onload pase la verificación
+    } else {
+        console.error("Error en registro:", error);
+        alert("❌ Error: " + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
 
 
 

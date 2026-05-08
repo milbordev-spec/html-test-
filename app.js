@@ -208,7 +208,7 @@ async function finalizarRegistro() {
     const payload = {
         telegram_id: telegramIdActual, // Este viene del sistema
         company_name: document.getElementById('reg-empresa').value.trim(),
-        owner_name: document.getElementById('reg-nombre-titular').value.trim(),
+        tg_username: document.getElementById('reg-nombre-titular').value.trim(),
         address: document.getElementById('reg-direccion').value.trim(),
         city: document.getElementById('reg-ciudad').value.trim(),
         state: document.getElementById('reg-estado').value.trim(),
@@ -257,7 +257,7 @@ async function finalizarRegistro() {
         return;
     }
 
-    if (payload.owner_name.length > 40) {
+    if (payload.tg_username.length > 40) {
         alert("❌ El nombre del titular es demasiado largo (máx 40).");
         return;
     }

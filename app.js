@@ -213,6 +213,7 @@ async function finalizarRegistro() {
         address: document.getElementById('reg-direccion').value.trim(),
         city: document.getElementById('reg-ciudad').value.trim(),
         state: document.getElementById('reg-estado').value.trim(),
+        country: document.getElementById('reg-pais').value.trim(),
         business_phone: document.getElementById('reg-telefono').value.trim(),
         // tg_username: tg.initDataUnsafe?.user?.username || null
     };
@@ -234,7 +235,7 @@ async function finalizarRegistro() {
         document.getElementById('modal-registro').classList.add('hidden');
         location.reload(); // Recargamos para que el onload pase la verificación
     } else {
-        console.error("Error en registro:", error);
+        console.error("Error en registro:");
         alert("❌ Error: " + error.message);
         btn.disabled = false;
         btn.innerHTML = originalText;

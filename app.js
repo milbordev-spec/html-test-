@@ -255,17 +255,7 @@ function renderList() {
             </div>
             <div class="flex items-center gap-3">
 
-            <div class="flex items-center gap-2">
-            <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em]">Protocolo de Envío</span>
-            
-            <!-- BADGE DINÁMICO DE STATUS -->
-            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter border 
-                ${m.status === 'sent'
-            ? 'bg-green-500/10 text-green-500 border-green-500/30'
-            : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'}">
-                ${m.status || 'pending'}
-            </span>
-        </div>
+          
             
                 <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center border border-white/5">
                     <i data-lucide="${m.canal === 'wa' ? 'message-circle' : 'send'}" class="w-5 h-5 ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}"></i>
@@ -415,19 +405,25 @@ async function manejarBusqueda(valor) {
 
 
 async function actualizarContadores(fechaSeleccionada) {
-    const fecha = fechaSeleccionada || document.getElementById('filtro-fecha').value; // Ej: "2026-05-07"
-    const canalActivo = canal;
+    // const fecha = fechaSeleccionada || document.getElementById('filtro-fecha').value; // Ej: "2026-05-07"
+    // const canalActivo = canal;
 
     // VENTANA DINÁMICA: Ajustamos el desfase de Sonora (UTC-7)
     // Inicio: 7:00 AM UTC del día seleccionado (00:00 local)
-    const inicioUTC = `${fecha}T07:00:00Z`;
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0'); // Mes empieza en 0
+    const dd = String(hoy.getDate()).padStart(2, '0');
+
+    const fechaHoy = `${yyyy}-${mm}-${dd}`;
+    // console.log('fechaHoy: ', fechaHoy); // "2026-05-07"
+    const inicioUTC = `${fechaHoy}T07:00:00Z`;
 
     // Fin: 6:59:59 AM UTC del DÍA SIGUIENTE (23:59 local)
-    let dSiguiente = new Date(fecha + 'T00:00:00Z');
+    let dSiguiente = new Date(fechaHoy + 'T00:00:00Z');
     dSiguiente.setUTCDate(dSiguiente.getUTCDate() + 1);
     const finUTC = `${dSiguiente.toISOString().split('T')[0]}T06:59:59Z`;
 
-    console.log(`[Sonora Sync] Buscando entre ${inicioUTC} y ${finUTC}`);
 
     const [respP, respS] = await Promise.all([
         supabaseCont

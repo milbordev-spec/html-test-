@@ -1,9 +1,9 @@
 const tg = window.Telegram.WebApp;
 
 // --- CONFIGURACIÓN supabaseCont ---
-const SUPABASE_URL = 'https://gcdjrmlurgmsimxfcnhl.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_tfuxf7U1TmUuofjIePGVeg_ZfUCZvtk';
-const supabaseCont = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+const _K = 'https://gcdjrmlurgmsimxfcnhl.supabase.co';
+const _P = 'sb_publishable_tfuxf7U1TmUuofjIePGVeg_ZfUCZvtk';
+const supabaseCont = supabase.createClient(_K, _P, {
     global: { headers: { 'x-telegram-id': tg.initDataUnsafe.user?.id.toString() || '0' } }
 });
 
@@ -21,7 +21,15 @@ let cargandoMas = false;
 let hayMasDatos = true; // Para saber cuándo dejar de pedir
 
 
-console.log('id_telehgra<: ', tg.initDataUnsafe.user?.id.toString())
+
+function obtenerFechaLocalActual() {
+    const ahora = new Date();
+    const yyyy = ahora.getFullYear();
+    const mm = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dd = String(ahora.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
 // --- TU WINDOW ONLOAD (MODIFICADO PARA CARGAR DE DB) ---
 window.onload = async () => {
     // Configurar el vigilante del final de la lista
@@ -36,6 +44,15 @@ window.onload = async () => {
     observer.observe(document.getElementById('scroll-anchor'));
     // const hoy = new Date().toISOString().split('T')[0];
     // document.getElementById('filtro-fecha').value = hoy;
+
+
+    const hoy = obtenerFechaLocalActual();
+    const filtroFechaInput = document.getElementById('filtro-fecha');
+
+    if (filtroFechaInput && !filtroFechaInput.value) {
+        filtroFechaInput.value = hoy;
+    }
+
     setCanal('wa');
     if (window.lucide) lucide.createIcons();
 
@@ -76,25 +93,25 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
         query = query.contains('recipients', [busquedaTel]);
 
         // Solo traemos los que aún no han pasado (Pendientes por tiempo)
-        const ahoraUTC = new Date().toISOString();
-        query = query.gte('scheduled_time', ahoraUTC);
+        // const ahoraUTC = new Date().toISOString();
+        // query = query.gte('scheduled_time', ahoraUTC);
 
     } else {
         // REGLA B: Si NO hay teléfono, usamos el FILTRO DE FECHA
         let fechaFiltro = document.getElementById('filtro-fecha').value;
         if (!fechaFiltro) {
-            fechaFiltro = new Date().toISOString().split('T')[0];
+            fechaFiltro = obtenerFechaLocalActual();
             document.getElementById('filtro-fecha').value = fechaFiltro;
         }
 
-        // Ajuste de ventana de tiempo Sonora (UTC-7)
-        const inicioDiaUTC = `${fechaFiltro}T07:00:00Z`;
-        let dSiguiente = new Date(fechaFiltro);
-        dSiguiente.setDate(dSiguiente.getDate() + 1);
-        const fechaSiguienteStr = dSiguiente.toISOString().split('T')[0];
-        const finDiaUTC = `${fechaSiguienteStr}T06:59:59Z`;
+        // Crear inicio y fin del día LOCAL y convertir a ISO para la DB
+        const inicioDia = new Date(fechaFiltro + 'T00:00:00'); // Hora local 00:00
+        const finDia = new Date(fechaFiltro + 'T23:59:59');    // Hora local 23:59
 
-        query = query.gte('scheduled_time', inicioDiaUTC).lte('scheduled_time', finDiaUTC);
+        const inicioUTC = inicioDia.toISOString();
+        const finUTC = finDia.toISOString();
+
+        query = query.gte('scheduled_time', inicioUTC).lte('scheduled_time', finUTC);
     }
 
     // 2. Ejecutar consulta

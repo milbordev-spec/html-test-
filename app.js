@@ -199,29 +199,71 @@ async function finalizarRegistro() {
     const btn = event.currentTarget;
     const originalText = btn.innerHTML;
 
+    const phoneRegex = /^\d{10}$/
+
     // Bloqueo de UI
     btn.disabled = true;
     btn.innerHTML = `<span class="animate-pulse">CONFIGURANDO...</span>`;
 
     const payload = {
-        telegram_id: telegramIdActual,
+        telegram_id: telegramIdActual, // Este viene del sistema
         company_name: document.getElementById('reg-empresa').value.trim(),
-        tg_username: document.getElementById('reg-nombre-titular').value.trim(),
+        owner_name: document.getElementById('reg-nombre-titular').value.trim(),
         address: document.getElementById('reg-direccion').value.trim(),
         city: document.getElementById('reg-ciudad').value.trim(),
         state: document.getElementById('reg-estado').value.trim(),
         country: document.getElementById('reg-pais').value.trim(),
-        business_phone: document.getElementById('reg-telefono').value.trim(),
-        // tg_username: tg.initDataUnsafe?.user?.username || null
+        business_phone: document.getElementById('reg-telefono').value.trim()
     };
 
-    // Validaciones de negocio
-    if (!payload.company_name || !payload.business_phone || !payload.tg_username) {
-        alert("⚠️ Los campos de Empresa, Nombre y Teléfono son obligatorios para el protocolo.");
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+    // 1. Validar que TODO sea obligatorio (Que no haya campos vacíos)
+    for (const [key, value] of Object.entries(payload)) {
+        if (!value) {
+            alert(`❌ El campo ${key} es obligatorio.`);
+            return; // Detiene el registro
+        }
+    }
+
+    // 2. Validación específica del Teléfono (10 dígitos exactos)
+    if (!/^\d{10}$/.test(payload.business_phone)) {
+        alert("❌ El teléfono debe tener 10 dígitos numéricos exactos.");
         return;
     }
+
+    // 3. Validación de Límites de Caracteres (Seguridad y Estética)
+    if (payload.company_name.length > 50) {
+        alert("❌ El nombre de la empresa es demasiado largo (máx 50).");
+        return;
+    }
+
+    if (payload.city.length > 50) {
+        alert("❌ El nombre de la ciudad es demasiado largo (máx 50).");
+        return;
+    }
+
+    if (payload.state.length > 50) {
+        alert("❌ El nombre del Estado es demasiado largo (máx 50).");
+        return;
+    }
+
+
+    if (payload.country.length > 50) {
+        alert("❌ El nombre del Pais es demasiado largo (máx 50).");
+        return;
+    }
+
+    if (payload.address.length > 100) {
+        alert("❌ La dirección es demasiado larga (máx 100).");
+        return;
+    }
+
+    if (payload.owner_name.length > 40) {
+        alert("❌ El nombre del titular es demasiado largo (máx 40).");
+        return;
+    }
+
+    // Si llega aquí, todo está perfecto.
+    // Aquí sigue tu fetch a Supabase...
 
 
     const { error } = await supabaseCont

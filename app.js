@@ -1,6 +1,21 @@
 const tg = window.Telegram.WebApp;
+tg.ready()
 
-tg.ready();
+
+
+function getTelegramId() {
+    // Si existe el ID lo regresa, si no, usa uno de prueba (solo para desarrollo)
+    const id = tg.initDataUnsafe.user?.id;
+    if (id) return id.toString();
+
+    // Si estás en Ciudad Obregón desarrollando en PC, usa tu ID real aquí manualmente
+    console.warn("⚠️ Telegram ID no detectado. Usando ID de respaldo.");
+    return '12345678';
+}
+
+
+
+console.log(getTelegramId)
 
 // --- CONFIGURACIÓN supabaseCont ---
 const _K = 'https://gcdjrmlurgmsimxfcnhl.supabase.co';
@@ -24,6 +39,9 @@ let paginaActual = 0;
 const registrosPorPagina = 20;
 let cargandoMas = false;
 let hayMasDatos = true; // Para saber cuándo dejar de pedir
+
+
+
 
 
 

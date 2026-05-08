@@ -152,8 +152,10 @@
             class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 hidden">
             <div class="glass-card w-full max-w-md rounded-[2.5rem] p-8 space-y-6 border border-white/10 shadow-2xl">
                 <div class="text-center">
-                    <div class="inline-flex p-3 rounded-2xl bg-green-500/10 border border-green-500/20 mb-4">
-                        <i data-lucide="building-2" class="w-8 h-8 text-green-500"></i>
+                    <!-- CAMBIO: Fondo y borde en tonos Cyan/Teal -->
+                    <div class="inline-flex p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 mb-4">
+                        <!-- CAMBIO: Icono en color cian -->
+                        <i data-lucide="building-2" class="w-8 h-8 text-cyan-400"></i>
                     </div>
                     <h2 class="text-2xl font-black text-white tracking-tight">Registro de Empresa</h2>
                     <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] mt-1">Configuración MaibaSync Pro</p>
@@ -164,7 +166,7 @@
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Nombre de la Empresa</label>
                         <input type="text" id="reg-empresa" placeholder="Ej. MaibaVet Obregón"
-                            class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base">
+                            class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-base bg-white/5">
                     </div>
 
                     <!-- Dirección -->
@@ -172,38 +174,37 @@
                         <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Dirección (Calle y
                             Número)</label>
                         <input type="text" id="reg-direccion" placeholder="Av. Aquiles Serdán 123"
-                            class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-sm">
+                            class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-sm bg-white/5">
                     </div>
 
-                    <!-- Ciudad y Estado (Valores por defecto para Sonora) -->
+                    <!-- Ciudad y Estado -->
                     <div class="grid grid-cols-2 gap-3">
                         <div class="space-y-1">
                             <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Ciudad</label>
                             <input type="text" id="reg-ciudad" value="Ciudad Obregón"
-                                class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-sm">
+                                class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-sm bg-white/5">
                         </div>
                         <div class="space-y-1">
                             <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Estado</label>
                             <input type="text" id="reg-estado" value="Sonora"
-                                class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-sm">
+                                class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-sm bg-white/5">
                         </div>
                     </div>
 
-                    <!-- Teléfono de Negocio -->
+                    <!-- WhatsApp de Negocio -->
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-gray-500 uppercase ml-1">WhatsApp de Negocio</label>
                         <input type="tel" id="reg-telefono" placeholder="644XXXXXXX" maxlength="10"
-                            class="input-boutique border-wa w-full p-4 rounded-2xl text-white outline-none text-base font-mono">
+                            class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-base font-mono bg-white/5">
                     </div>
                 </div>
 
-                <!-- Botón de Acción con ID para disparar finalizarRegistro() -->
+                <!-- CAMBIO: Botón en degradado Azul-Verde (Cyan a Teal) -->
                 <button onclick="finalizarRegistro()"
-                    class="w-full py-5 bg-green-500 hover:bg-green-400 text-black font-black text-xs uppercase tracking-widest rounded-3xl transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] active:scale-95">
+                    class="w-full py-5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-black font-black text-xs uppercase tracking-widest rounded-3xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.3)] active:scale-95">
                     Activar Protocolo Sync
                 </button>
             </div>
-
         </div>
         <script src="app.js"></script>
 </body>

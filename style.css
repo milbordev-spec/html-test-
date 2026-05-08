@@ -107,3 +107,155 @@ body {
     overflow-wrap: break-word;
     hyphens: auto;
 }
+
+
+
+
+/* Estilos CSS personalizados para lograr los efectos de la imagen */
+
+/* 1. Fondo principal de la ventana (detrás del modal) */
+.bg-main-frame {
+    background-color: #f1f7fc;
+    /* Imita el cielo claro de la imagen */
+}
+
+/* 2. El card del modal (efecto cristal profundo) */
+.modal-deep-glass {
+    background: rgba(16, 24, 39, 0.9);
+    /* Azul marino mate profundo, oscuro pero translúcido */
+    border: 2px solid rgba(6, 182, 212, 0.4);
+    /* Borde cian sutil */
+    box-shadow: 0 0 50px rgba(6, 182, 212, 0.2), inset 0 0 20px rgba(6, 182, 212, 0.1);
+    /* Brillo cian exterior e interior */
+    backdrop-blur-xl: blur(24px);
+}
+
+/* 3. Patrón de hexágonos de fondo (imita el círculo de luz) */
+.hexagon-pattern {
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSIzNCIgdmlld0JveD0iMCAwIDQwIDM0Ij48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwNmI2ZDQiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMTdoMTAuNWw1LjI1IDkuMDloMTAuNWw1LjI1LTkuMDlINDBCMzQuNjU4IDUuODhIMTcuODQyTDEwLjUgMTcgMCAxN3ptMjAgMzRMMTAuNSA4LjY2aDE5LjVMMjAgMzR6bTAgMEwxMC41IDI5LjloMTkuNUwyMCAzNHoiLz48L2c+PC9nPjwvc3ZnPg==');
+    background-repeat: repeat;
+    position: absolute;
+    inset: 0;
+    opacity: 1;
+    /* Sutil pero visible */
+}
+
+/* 4. Inputs estilo Boutique (Fondo marino, borde cian al foco) */
+.input-maibatech {
+    background-color: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #fff;
+    transition: all 0.3s;
+}
+
+.input-maibatech:focus {
+    border-color: rgba(6, 182, 212, 1);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+/* 5. Botón principal (Degradado Cian-Teal con Glow, imita la luz de la imagen) */
+.btn-glow-cyan {
+    background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+    /* Cian a Teal */
+    box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+    transition: all 0.3s;
+    border: none;
+}
+
+.btn-glow-cyan:hover {
+    background: linear-gradient(135deg, #22d3ee 0%, #2dd4bf 100%);
+    /* Cian claro */
+    box-shadow: 0 6px 25px rgba(6, 182, 212, 0.6);
+    transform: translateY(-2px);
+}
+
+
+/* Estilos CSS personalizados para el diseño Boutique */
+
+/* 1. Fondo de cristal profundo (Deep Glass) con bordes de luz */
+.modal-boutique-glass {
+    background: rgba(16, 24, 39, 0.7);
+    /* Azul marino mate profundo, más translúcido */
+    border-radius: 4rem;
+    /* Súper redondeado, muy moderno */
+    border: 2px solid rgba(6, 182, 212, 0.5);
+    /* Borde cian vibrante */
+    box-shadow: 0 0 70px rgba(6, 182, 212, 0.3), inset 0 0 30px rgba(6, 182, 212, 0.2);
+    /* Doble brillo (glow) */
+    backdrop-filter: blur(30px);
+    /* Efecto cristal puro */
+    position: relative;
+    overflow: hidden;
+}
+
+/* 2. Efecto de "Alas de Luz" (simulado con degradados sutiles de fondo) */
+.modal-boutique-glass::before,
+.modal-boutique-glass::after {
+    content: '';
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    z-index: 1;
+}
+
+.modal-boutique-glass::before {
+    top: -50px;
+    left: -50px;
+    background-color: #06b6d4;
+    /* Cian neón */
+}
+
+.modal-boutique-glass::after {
+    bottom: -50px;
+    right: -50px;
+    background-color: #14b8a6;
+    /* Teal neón */
+}
+
+/* 3. Inputs Boutique (Sin bordes, fondo marino, texto cian al foco) */
+.input-maiba-pro {
+    background-color: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    /* Supongamos que usas Inter */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-maiba-pro::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+}
+
+.input-maiba-pro:focus {
+    background-color: rgba(31, 41, 55, 1);
+    border-color: rgba(6, 182, 212, 0.6);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+    color: #fff;
+}
+
+/* 4. Botón de Acción Principal (El "Glow Cyan" de la imagen) */
+.btn-maiba-active {
+    background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+    /* Cian a Teal */
+    box-shadow: 0 6px 30px rgba(6, 182, 212, 0.5);
+    color: #000;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 11px;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-maiba-active:hover {
+    background: linear-gradient(135deg, #22d3ee 0%, #2dd4bf 100%);
+    /* Cian claro */
+    box-shadow: 0 8px 35px rgba(6, 182, 212, 0.7);
+    transform: translateY(-3px);
+}

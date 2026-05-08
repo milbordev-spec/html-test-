@@ -148,13 +148,15 @@
         </div>
         <!-- MODAL DE REGISTRO EMPRESARIAL (Inyectar aquí) -->
         <!-- Este modal inicia oculto (hidden) y el JS lo activa si no detecta perfil -->
+
         <div id="modal-registro"
-            class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 hidden">
-            <div class="glass-card w-full max-w-md rounded-[2.5rem] p-8 space-y-6 border border-white/10 shadow-2xl">
+            class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-start sm:items-center justify-center p-4 overflow-y-auto hidden">
+
+            <div
+                class="glass-card w-full max-w-md rounded-[2.5rem] p-6 sm:p-8 my-auto space-y-6 border border-white/10 shadow-2xl relative">
+
                 <div class="text-center">
-                    <!-- CAMBIO: Fondo y borde en tonos Cyan/Teal -->
                     <div class="inline-flex p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 mb-4">
-                        <!-- CAMBIO: Icono en color cian -->
                         <i data-lucide="bot-message-square" class="w-8 h-8 text-cyan-400"></i>
                     </div>
                     <h2 class="text-2xl font-black text-white tracking-tight">Registro de Empresa</h2>
@@ -162,7 +164,6 @@
                 </div>
 
                 <div class="space-y-4">
-                    <!-- Nombre de Empresa -->
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Nombre de la Empresa</label>
                         <input type="text" id="reg-empresa" placeholder="Ej. MaibaVet Obregón"
@@ -175,7 +176,6 @@
                             class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-sm bg-white/5">
                     </div>
 
-                    <!-- Dirección -->
                     <div class="space-y-1">
                         <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Dirección (Calle y
                             Número)</label>
@@ -183,8 +183,7 @@
                             class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-sm bg-white/5">
                     </div>
 
-                    <!-- Ciudad y Estado -->
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1">
                             <label class="text-[10px] font-black text-gray-500 uppercase ml-1">Ciudad</label>
                             <input type="text" id="reg-ciudad" value="Ciudad Obregón"
@@ -200,7 +199,6 @@
                             <input type="text" id="reg-pais" value="Mexico"
                                 class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-sm bg-white/5">
                         </div>
-                        <!-- WhatsApp de Negocio -->
                         <div class="space-y-1">
                             <label class="text-[10px] font-black text-gray-500 uppercase ml-1">WhatsApp de
                                 Negocio</label>
@@ -208,17 +206,17 @@
                                 class="input-boutique border-white/10 focus:border-cyan-500/50 w-full p-4 rounded-2xl text-white outline-none text-base font-mono bg-white/5">
                         </div>
                     </div>
-
-
                 </div>
 
-                <!-- CAMBIO: Botón en degradado Azul-Verde (Cyan a Teal) -->
                 <button onclick="finalizarRegistro()"
                     class="w-full py-5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-black font-black text-xs uppercase tracking-widest rounded-3xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.3)] active:scale-95">
                     Registrarse
                 </button>
             </div>
         </div>
+
+
+
         <script src="app.js"></script>
 </body>
 

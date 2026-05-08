@@ -40,7 +40,6 @@ const supabaseCont = supabase.createClient(_K, _P, {
     }
 });
 
-// console.log('ID Detectado para Supabase:', telegramIdActual);
 
 let canal = 'wa';
 let filtroActual = 'all';
@@ -85,7 +84,6 @@ window.onload = async () => {
             if (window.lucide) lucide.createIcons(); // Para los iconos del modal
             return; // Detenemos la carga del resto de la app
         }
-        console.log("Acceso Autorizado: " + client.company_name);
     }
 
     // 2. CONTINUAR CON TU LÓGICA NORMAL (Si el registro existe)
@@ -116,7 +114,6 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
 
     const fechaFiltro = document.getElementById('filtro-fecha').value;
 
-    console.log(fechaFiltro)
 
     actualizarContadores(fechaFiltro);
 
@@ -219,12 +216,13 @@ async function finalizarRegistro() {
     };
 
     // Validaciones de negocio
-    if (!payload.company_name || !payload.business_phone) {
-        alert("⚠️ Los campos de Empresa y Teléfono son obligatorios para el protocolo.");
+    if (!payload.company_name || !payload.business_phone || !payload.tg_username) {
+        alert("⚠️ Los campos de Empresa, Nombre y Teléfono son obligatorios para el protocolo.");
         btn.disabled = false;
         btn.innerHTML = originalText;
         return;
     }
+
 
     const { error } = await supabaseCont
         .from('maiba_clients')
@@ -283,12 +281,15 @@ function setCanal(tipo) {
         el.classList.add(isWa ? 'border-wa' : 'border-tg');
     });
 
+
+
+
     const isEditing = document.getElementById('edit-id').value !== '';
     if (!isEditing) {
         if (isWa) {
-            btnMain.className = "w-full py-5 bg-blue-500 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all";
+            btnMain.className = "w-full py-5 bg-transparent border-2 border-blue-500 text-blue-400 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(6,182,212,0.2)] hover:bg-blue-500/10 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] active:scale-95 transition-all";
         } else {
-            btnMain.className = "w-full py-5 bg-blue-500 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all";
+            btnMain.className = "w-full py-5 bg-transparent border-2 border-blue-500 text-blue-400 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(6,182,212,0.2)] hover:bg-blue-500/10 hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] active:scale-95 transition-all";
         }
     }
 }
@@ -533,7 +534,6 @@ async function actualizarContadores(fechaSeleccionada) {
     const dd = String(hoy.getDate()).padStart(2, '0');
 
     const fechaHoy = `${yyyy}-${mm}-${dd}`;
-    // console.log('fechaHoy: ', fechaHoy); // "2026-05-07"
     const inicioUTC = `${fechaHoy}T07:00:00Z`;
 
     // Fin: 6:59:59 AM UTC del DÍA SIGUIENTE (23:59 local)

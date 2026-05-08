@@ -209,11 +209,12 @@ async function finalizarRegistro() {
     const payload = {
         telegram_id: telegramIdActual,
         company_name: document.getElementById('reg-empresa').value.trim(),
+        tg_username: document.getElementById('reg-nombre-titular').value.trim(),
         address: document.getElementById('reg-direccion').value.trim(),
         city: document.getElementById('reg-ciudad').value.trim(),
         state: document.getElementById('reg-estado').value.trim(),
         business_phone: document.getElementById('reg-telefono').value.trim(),
-        tg_username: tg.initDataUnsafe?.user?.username || null
+        // tg_username: tg.initDataUnsafe?.user?.username || null
     };
 
     // Validaciones de negocio

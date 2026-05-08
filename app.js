@@ -46,6 +46,10 @@ window.onload = async () => {
 async function cargarMensajes(busquedaTel = "", acumular = false) {
     if (cargandoMas || (!hayMasDatos && acumular)) return;
 
+    const fechaFiltro = document.getElementById('filtro-fecha').value;
+
+    actualizarContadores(fechaFiltro);
+
     cargandoMas = true;
     if (!acumular) {
         paginaActual = 0;
@@ -248,6 +252,7 @@ function renderList() {
                 <button onclick="eliminar('${m.id}')" class="text-red-900/40 hover:text-red-500 transition-all active:scale-125"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
             </div>
             <div class="flex items-center gap-3">
+            
                 <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center border border-white/5">
                     <i data-lucide="${m.canal === 'wa' ? 'message-circle' : 'send'}" class="w-5 h-5 ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}"></i>
                 </div>
@@ -392,6 +397,41 @@ async function manejarBusqueda(valor) {
         hayMasDatos = true; // Reseteamos para que pueda volver a cargar si borra búsqueda
         await cargarMensajes(tel, false); // false = no acumular, es búsqueda nueva
     }
+}
+
+
+async function actualizarContadores(fechaSeleccionada) {
+    const fecha = fechaSeleccionada || document.getElementById('filtro-fecha').value;
+    const canalActivo = canal; // La variable global 'canal' (wa o tg)
+
+    // Ventana Sonora UTC-7
+    const inicioDiaUTC = `${fecha}T07:00:00Z`;
+    let dSiguiente = new Date(fecha);
+    dSiguiente.setDate(dSiguiente.getDate() + 1);
+    const finDiaUTC = `${dSiguiente.toISOString().split('T')[0]}T06:59:59Z`;
+
+    // CONSULTA PENDIENTES
+    // Usamos 'or' para capturar si el status es 'pending' O si está vacío (null)
+    const { count: pCount } = await supabaseCont
+        .from('sync_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('channel_type', canalActivo)
+        .gte('scheduled_time', inicioDiaUTC)
+        .lte('scheduled_time', finDiaUTC)
+        .or('status.eq.pending,status.is.null'); // Captura pendientes y nulos
+
+    // CONSULTA ENVIADOS
+    const { count: sCount } = await supabaseCont
+        .from('sync_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('channel_type', canalActivo)
+        .eq('status', 'sent')
+        .gte('scheduled_time', inicioDiaUTC)
+        .lte('scheduled_time', finDiaUTC);
+
+    // Actualizar la UI
+    document.getElementById('count-pending').innerText = pCount || 0;
+    document.getElementById('count-sent').innerText = sCount || 0;
 }
 
 // function resetearYFiltrar() { renderList(); }

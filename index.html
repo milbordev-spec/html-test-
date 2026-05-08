@@ -107,6 +107,39 @@
                 </div>
             </div>
 
+            <!-- Tablero de Estadísticas -->
+            <!-- Tablero de Monitoreo Diario -->
+            <div id="stats-container" class="grid grid-cols-2 gap-4 mb-6 px-2">
+                <!-- Contador Pendientes -->
+                <div
+                    class="relative overflow-hidden bg-white/5 border border-white/10 p-5 rounded-[2rem] flex flex-col items-center justify-center transition-all">
+                    <div class="absolute top-0 right-0 p-3 opacity-20">
+                        <i data-lucide="clock" class="w-8 h-8 text-yellow-500"></i>
+                    </div>
+                    <span class="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Pendientes
+                        Hoy</span>
+                    <div class="flex items-baseline gap-1">
+                        <span id="count-pending" class="text-3xl font-black text-yellow-500 tracking-tighter">0</span>
+                        <span class="text-[10px] font-bold text-yellow-500/50 uppercase">msg</span>
+                    </div>
+                </div>
+
+                <!-- Contador Enviados -->
+                <div
+                    class="relative overflow-hidden bg-white/5 border border-white/10 p-5 rounded-[2rem] flex flex-col items-center justify-center transition-all">
+                    <div class="absolute top-0 right-0 p-3 opacity-20">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-green-500" id="icon-sent-color"></i>
+                    </div>
+                    <span class="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Enviados
+                        Hoy</span>
+                    <div class="flex items-baseline gap-1">
+                        <span id="count-sent" class="text-3xl font-black text-green-500 tracking-tighter"
+                            id="text-sent-color">0</span>
+                        <span class="text-[10px] font-bold text-green-500/50 uppercase">ok</span>
+                    </div>
+                </div>
+            </div>
+
             <div id="contenedor-mensajes" class="space-y-4"></div>
             <div id="scroll-anchor" class="h-10 w-full flex items-center justify-center">
                 <!-- Aquí puedes poner un spinner de carga -->

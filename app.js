@@ -1,32 +1,46 @@
-// 1. Instancia básica de Telegram
+// --- PROTOCOLO DE EXTRACCIÓN MAIBASYNC ---
 const tg = window.Telegram.WebApp;
-tg.ready(); // CRUCIAL: Avisa a Telegram que la app está lista
+tg.ready();
 
-// 2. Función para obtener el ID de forma segura
-function getTelegramId() {
-    // Si existe el ID lo regresa, si no, usa uno de prueba (solo para desarrollo)
-    const id = tg.initDataUnsafe.user?.id;
-    if (id) return id.toString();
+function extraerIdSeguro() {
+    // Intento 1: El objeto directo (lo que ya usas)
+    if (tg.initDataUnsafe?.user?.id) {
+        return tg.initDataUnsafe.user.id.toString();
+    }
 
-    // Si estás en Ciudad Obregón desarrollando en PC, usa tu ID real aquí manualmente
-    console.warn("⚠️ Telegram ID no detectado. Usando ID de respaldo.");
-    return '12345678';
+    // Intento 2: Parsear el initData (a veces viene como string de URL)
+    try {
+        const params = new URLSearchParams(tg.initData);
+        const userRaw = params.get('user');
+        if (userRaw) {
+            const userObj = JSON.parse(userRaw);
+            if (userObj.id) return userObj.id.toString();
+        }
+    } catch (e) {
+        console.error("Error parseando initData:", e);
+    }
+
+    // Intento 3: Modo Desarrollo (Hardcoded temporal para pruebas)
+    // Pon tu ID real aquí para que puedas trabajar en Ciudad Obregón sin depender de Telegram
+    console.warn("⚠️ Usando ID de respaldo para desarrollo local.");
+    return "0";
 }
 
-// 3. Configuración dinámica de Supabase
+const telegramIdActual = extraerIdSeguro();
+
+// --- CONFIGURACIÓN SUPABASE ---
 const _K = 'https://gcdjrmlurgmsimxfcnhl.supabase.co';
 const _P = 'sb_publishable_tfuxf7U1TmUuofjIePGVeg_ZfUCZvtk';
 
-// Usamos una función para crear el cliente para que el ID se evalúe correctamente
 const supabaseCont = supabase.createClient(_K, _P, {
     global: {
         headers: {
-            'x-telegram-id': getTelegramId()
+            'x-telegram-id': telegramIdActual
         }
     }
 });
 
-console.log('x-telegram-id: ', tg.initDataUnsafe.user?.id.toString())
+console.log('ID Detectado para Supabase:', telegramIdActual);
 
 let canal = 'wa';
 let filtroActual = 'all';

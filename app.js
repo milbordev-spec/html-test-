@@ -469,3 +469,6 @@ async function actualizarContadores(fechaSeleccionada) {
 
 // function resetearYFiltrar() { renderList(); }
 function validarYFiltrar() { renderList(); }
+
+
+tg.ready();

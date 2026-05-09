@@ -407,54 +407,77 @@ function renderList() {
         return;
     }
 
-    cont.innerHTML = filtrados.map(m => `
-        <div class="msg-card p-6 rounded-[2rem] space-y-5 animate-card relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-5 flex gap-6">
-                <button onclick="editarRegistro('${m.id}')" class="text-gray-400 hover:text-white transition-all active:scale-125"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
-                <button onclick="eliminar('${m.id}')" class="text-red-900/40 hover:text-red-500 transition-all active:scale-125"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-            </div>
-            <div class="flex items-center gap-3">
+    cont.innerHTML = filtrados.map(m => {
+        // Definir estilos según el estado de entrega
+        const statusConfig = {
+            pending: { color: 'text-orange-500', bg: 'bg-yellow-500/10', label: 'Pendiente', icon: 'clock' },
+            sent: { color: 'text-green-500', bg: 'bg-green-500/10', label: 'Enviado', icon: 'check-circle' },
+            failed: { color: 'text-yellow-500', bg: 'bg-red-500/10', label: 'Procesando', icon: 'alert-circle' }
+        };
 
-          
-            
-                <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center border border-white/5">
-                    <i data-lucide="${m.canal === 'wa' ? 'message-circle' : 'send'}" class="w-5 h-5 ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}"></i>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em]">Protocolo de Envío</span>
-                    <span class="text-sm font-black uppercase tracking-widest ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}">${m.canal === 'wa' ? 'WhatsApp Premium' : 'Telegram Elite'}</span>
+        const status = statusConfig[m.delivery_status] || statusConfig.pending;
+
+
+        return `
+    <div class="msg-card p-6 rounded-[2rem] space-y-5 animate-card relative overflow-hidden">
+        <!-- Badge de Estatus de Entrega -->
+        <div class="absolute top-6 right-20">
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full ${status.bg} border border-white/5">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${status.color.replace('text', 'bg')} opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 ${status.color.replace('text', 'bg')}"></span>
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest ${status.color}">${status.label}</span>
+            </div>
+        </div>
+
+        <div class="absolute top-0 right-0 p-5 flex gap-6">
+            <button onclick="editarRegistro('${m.id}')" class="text-gray-400 hover:text-white transition-all active:scale-125"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+            <button onclick="eliminar('${m.id}')" class="text-red-900/40 hover:text-red-500 transition-all active:scale-125"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center border border-white/5">
+                <i data-lucide="${m.canal === 'wa' ? 'message-circle' : 'send'}" class="w-5 h-5 ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}"></i>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em]">Protocolo de Envío</span>
+                <span class="text-sm font-black uppercase tracking-widest ${m.canal === 'wa' ? 'text-green-500' : 'text-blue-500'}">${m.canal === 'wa' ? 'WhatsApp Premium' : 'Telegram Elite'}</span>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <p class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1">Destinatario:</p>
+                <p class="text-3xl font-black text-white tracking-tighter">${m.tel}</p>
+            </div>
+            <div>
+                <p class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1">Contenido:</p>
+                <div class="bg-white/5 p-3 rounded-xl border border-white/5">
+                    <p id="msg-text-${m.id}" class="text-gray-300 text-base leading-relaxed italic font-medium mensaje-truncado break-words">"${m.msg}"</p>
+                    ${m.msg.length > 50 ? `<button onclick="toggleMensaje('${m.id}', this)" class="mt-2 text-[12px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors">Leer más</button>` : ''}
                 </div>
             </div>
-            <div class="space-y-4">
-                <div>
-                    <p class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1">Destinatario:</p>
-                    <p class="text-3xl font-black text-white tracking-tighter">${m.tel}</p>
-                </div>
-                <div>
-                    <p class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1">Contenido:</p>
-                    <div class="bg-white/5 p-3 rounded-xl border border-white/5">
-                        <p id="msg-text-${m.id}" class="text-gray-300 text-base leading-relaxed italic font-medium mensaje-truncado break-words">"${m.msg}"</p>
-                        ${m.msg.length > 50 ? `<button onclick="toggleMensaje('${m.id}', this)" class="mt-2 text-[12px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors">Leer más</button>` : ''}
-                    </div>
+        </div>
+
+        <div class="pt-5 border-t border-white/10 flex justify-between items-center">
+            <div class="flex flex-col">
+                <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1">Fecha</span>
+                <div class="flex items-center gap-2 text-white">
+                    <i data-lucide="calendar" class="w-4 h-4 text-gray-500"></i>
+                    <span class="text-sm font-bold">${m.fec.split('T')[0]}</span>
                 </div>
             </div>
-            <div class="pt-5 border-t border-white/10 flex justify-between items-center">
-                <div class="flex flex-col">
-                    <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1">Fecha</span>
-                    <div class="flex items-center gap-2 text-white">
-                        <i data-lucide="calendar" class="w-4 h-4 text-gray-500"></i>
-                        <span class="text-sm font-bold">${m.fec.split('T')[0]}</span>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1 block">Hora Programada</span>
-                    <div class="flex items-center gap-2 text-white justify-end">
-                        <i data-lucide="clock" class="w-4 h-4 text-gray-500"></i>
-                        <span class="text-2xl font-black">${m.fec.split('T')[1]}</span>
-                    </div>
+            <div class="text-right">
+                <span class="text-[11px] font-black text-gray-500 uppercase tracking-[0.1em] mb-1 block">Hora Programada</span>
+                <div class="flex items-center gap-2 text-white justify-end">
+                    <i data-lucide="clock" class="w-4 h-4 text-gray-500"></i>
+                    <span class="text-2xl font-black">${m.fec.split('T')[1]}</span>
                 </div>
             </div>
-        </div>`).join('');
+        </div>
+    </div>`;
+    }).join('');
     if (window.lucide) lucide.createIcons();
 }
 

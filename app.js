@@ -181,7 +181,8 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
                 tel: d.recipients.join(', '),
                 msg: d.message_body,
                 fec: formatearFechaLocal(fechaLocal),
-                canal: d.channel_type
+                canal: d.channel_type,
+                delivery_status: d.delivery_status
             };
         });
 
@@ -417,6 +418,7 @@ function renderList() {
 
         const status = statusConfig[m.delivery_status] || statusConfig.pending;
 
+        console.log('estatus: ', m)
 
         return `
     <div class="msg-card p-6 rounded-[2rem] space-y-5 animate-card relative overflow-hidden">

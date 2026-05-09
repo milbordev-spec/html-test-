@@ -195,6 +195,15 @@ async function cargarMensajes(busquedaTel = "", acumular = false) {
 }
 
 
+function generarHashBoutique(length = 6) {
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let resultado = '';
+    for (let i = 0; i < length; i++) {
+        resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    return resultado;
+}
+
 // --- FUNCIÓN DE REGISTRO DE EMPRESA ---
 async function finalizarRegistro() {
     const btn = event.currentTarget;
@@ -214,6 +223,7 @@ async function finalizarRegistro() {
         city: document.getElementById('reg-ciudad').value.trim(),
         state: document.getElementById('reg-estado').value.trim(),
         country: document.getElementById('reg-pais').value.trim(),
+        hash_company: generarHashBoutique(),
         business_phone: document.getElementById('reg-telefono').value.trim()
     };
 
